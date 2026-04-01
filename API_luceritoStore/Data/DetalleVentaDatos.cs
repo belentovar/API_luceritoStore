@@ -1,0 +1,85 @@
+﻿using API_luceritoStore.Models;
+using Microsoft.Data.SqlClient;
+using System.Data;
+
+namespace API_luceritoStore.Data
+{
+    public class DetalleVentaDatos
+    {
+        public List<Venta> listarDetalleVenta(int idUsuario)
+        {
+            AccesoDatos conexion = new AccesoDatos();
+            List<Venta> ventas = new List<Venta>();
+
+            string consulta = "SELECT v.idVenta, v.idUsuario, v.fecha, v.total, v.estado, " +
+                  "dv.cantidad, dv.precioUnitario, dv.idDetalleVenta, " +
+                  "p.idProducto, p.NombreProducto, p.Precio, p.Detalle, p.ImagenProducto " +
+                  "FROM Ventas v " +
+                  "LEFT JOIN DetalleVentas dv ON v.idVenta = dv.idVenta " +
+                  "LEFT JOIN Productos p ON dv.idProducto = p.idProducto " +
+                  "WHERE v.idUsuario = @idUsuario " +
+                  "ORDER BY v.idVenta";
+
+            SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+            sqlCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
+
+            SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
+
+            while(sqlDataReader.Read()) {
+
+                Venta? venta = ventas.FirstOrDefault(venta => venta.IdVenta == (int)sqlDataReader["idVenta"]);
+
+                if (venta == null) {
+                    venta = new Venta()
+                    {
+                        IdVenta = (int)sqlDataReader["idVenta"],
+                        IdUsuario = (int)sqlDataReader["idUsuario"],
+                        Fecha = (DateTime)sqlDataReader["fecha"],
+                        Total = (decimal)sqlDataReader["total"],
+                        Estado = sqlDataReader["estado"].ToString(),
+                        Detalle = new List<DetalleVenta>()
+                    };
+
+                    ventas.Add(venta);
+                }
+
+                if (sqlDataReader["idDetalleVenta"] != DBNull.Value)
+                {
+                    venta.Detalle.Add(new DetalleVenta()
+                    {
+                        IdDetalleVenta = (int)sqlDataReader["idDetalleVenta"],
+                        IdVenta = (int)sqlDataReader["idVenta"],
+                        Cantidad = (int)sqlDataReader["cantidad"],
+                        PrecioUnitario = (decimal)sqlDataReader["precioUnitario"],
+                        Producto = new Producto()
+                        {
+                            IdProducto = (int)sqlDataReader["idProducto"],
+                            NombreProducto = sqlDataReader["nombreProducto"].ToString(),
+                            Precio = (decimal)sqlDataReader["precio"]
+                        }
+                    });
+                }
+                    
+            }
+            
+            conexion.CerrarConexion();
+            return ventas;
+        }
+
+        public int insertarDetalle(int idVenta, DetalleVenta detalle, SqlConnection conn, SqlTransaction transaccion)
+        {
+            string consulta = @"INSERT INTO DetalleVentas (idVenta, idProducto, cantidad, precioUnitario)
+                        VALUES (@idVenta, @idProducto, @cantidad, @precio)";
+
+            SqlCommand cmd = new SqlCommand(consulta, conn, transaccion);
+
+            cmd.Parameters.AddWithValue("@idVenta", idVenta);
+            cmd.Parameters.AddWithValue("@idProducto", detalle.Producto.IdProducto);
+            cmd.Parameters.AddWithValue("@cantidad", detalle.Cantidad);
+            cmd.Parameters.AddWithValue("@precio", detalle.PrecioUnitario);
+
+            return cmd.ExecuteNonQuery();
+        }
+
+    }
+}

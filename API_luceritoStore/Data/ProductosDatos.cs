@@ -34,14 +34,15 @@ namespace API_luceritoStore.Data
 
         public List<Producto> listarProductos() /// ---------------------------> LISTAR PRODUCTOS
         {
-            AccesoDatos conexion = new AccesoDatos();
-           
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
+
 
             string consulta = "SELECT * FROM Productos";
             
             try
             {
-                SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());              
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);              
                 return listaDeProductos(sqlCommand);
 
             }
@@ -50,27 +51,27 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                conexion.CerrarConexion();
+                acceso.CerrarConexion(conexion);
             }
         }
 
-        public Producto obtenerProductoPorId(int idProducto) /// --------> OBTENER PRODUCTO POR ID
+        public Producto? obtenerProductoPorId(int idProducto) /// --------> OBTENER PRODUCTO POR ID
         {
-            AccesoDatos conexion = new AccesoDatos();
-            Producto producto = new Producto();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "SELECT * FROM Productos WHERE idProducto = @idProd";
 
             try
             {
-                SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
                 sqlCommand.Parameters.AddWithValue("@idProd", idProducto);
 
                 SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
 
                 if (sqlDataReader.Read())
                 {
-                    producto = new Producto()
+                    Producto producto = new Producto()
                     {
                         IdProducto = (int)sqlDataReader["idProducto"],
                         IdCategoria = (int)sqlDataReader["idCategoria"],
@@ -80,9 +81,10 @@ namespace API_luceritoStore.Data
                         ImagenProducto = sqlDataReader["imagenProducto"].ToString(),
                         Stock = (int)sqlDataReader["stock"],
                     };
+                    return producto;
                 }
 
-                return producto;
+                return null;
             }
             catch (Exception)
             {
@@ -90,20 +92,21 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                conexion.CerrarConexion();
+                acceso.CerrarConexion(conexion);
             }
         }
 
 
         public List<Producto> listarProductosPorCategoria(int idCategoria)/// ------------------> LISTAR PRODUCTOS POR CATEGORIA
         {
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "select * from Productos where idCategoria = @idCat";
 
             try
             {
-                SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
                 sqlCommand.Parameters.AddWithValue("@idCat", idCategoria);
                 
                 return listaDeProductos(sqlCommand); ;
@@ -113,20 +116,21 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                conexion.CerrarConexion();
+                acceso.CerrarConexion(conexion);
             }
         }
 
         public List<Producto> listarProductosPorNombre(string nombreProduc)/// ------------------> LISTAR PRODUCTOS POR NOMBRE
         {
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
             string consulta = "select * from Productos where nombreProducto like @p1 or " +
                               "nombreProducto like @p2 or " +
                               "nombreProducto like @p3";
             
             try{
 
-                SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
                 sqlCommand.Parameters.AddWithValue("@p1", "%" + nombreProduc);
                 sqlCommand.Parameters.AddWithValue("@p2", "%" + nombreProduc + "%");
                 sqlCommand.Parameters.AddWithValue("@p3", nombreProduc + "%");
@@ -139,18 +143,19 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                conexion.CerrarConexion();
+                acceso.CerrarConexion(conexion);
             }
         }
 
         public int eliminarProducto(int idProduc) /// ------------------> BORRAR PRODUCTO POR ID
         {
             string consulta = "delete from Productos where idProducto = @idProduc";
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             try
             {
-                SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
                 sqlCommand.Parameters.AddWithValue("@idProduc", idProduc);
                 int filasAfectadas = sqlCommand.ExecuteNonQuery();
 
@@ -161,13 +166,14 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                conexion.CerrarConexion();
+                acceso.CerrarConexion(conexion);
             }
         }
 
         public int actualizarProducto(Producto producto) /// -------- ACTUALIZAR PRODUCTO
         {
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = @"UPDATE Productos 
                         SET idCategoria = @idCategoria,
@@ -180,7 +186,7 @@ namespace API_luceritoStore.Data
 
             try
             {
-                SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
 
                 sqlCommand.Parameters.AddWithValue("@idProd", producto.IdProducto);
                 sqlCommand.Parameters.AddWithValue("@idCategoria", producto.IdCategoria);
@@ -190,7 +196,7 @@ namespace API_luceritoStore.Data
                 sqlCommand.Parameters.AddWithValue("@imagen", producto.ImagenProducto);
                 sqlCommand.Parameters.AddWithValue("@stock", producto.Stock);
 
-                return sqlCommand.ExecuteNonQuery(); 
+                return sqlCommand.ExecuteNonQuery();
             }
             catch (Exception)
             {
@@ -198,8 +204,11 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                conexion.CerrarConexion();
+                acceso.CerrarConexion(conexion);
             }
+
         }
+
+
     }
 }

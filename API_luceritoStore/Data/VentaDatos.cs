@@ -9,10 +9,10 @@ namespace API_luceritoStore.Data
     {
         public int insertarVenta(Venta venta)
         {
-            AccesoDatos conexion = new AccesoDatos();
-            SqlConnection conn = conexion.ObtenerConexion();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
-            SqlTransaction transaccion = conn.BeginTransaction();
+            SqlTransaction transaccion = conexion.BeginTransaction();
 
             try
             {
@@ -20,7 +20,7 @@ namespace API_luceritoStore.Data
                                    VALUES (@idUsuario, @fecha, @total, @estado);
                                    SELECT SCOPE_IDENTITY();";
 
-                SqlCommand cmd = new SqlCommand(consulta, conn, transaccion);
+                SqlCommand cmd = new SqlCommand(consulta, conexion, transaccion);
 
                 cmd.Parameters.AddWithValue("@idUsuario", venta.IdUsuario);
                 cmd.Parameters.AddWithValue("@fecha", venta.Fecha);
@@ -35,7 +35,7 @@ namespace API_luceritoStore.Data
 
                 foreach (DetalleVenta detalle in venta.Detalle)
                 {
-                    detalleDatos.insertarDetalle(idGenerado, detalle, conn, transaccion);
+                    detalleDatos.insertarDetalle(idGenerado, detalle, conexion, transaccion);
                 }
 
                 transaccion.Commit();
@@ -47,36 +47,43 @@ namespace API_luceritoStore.Data
                 transaccion.Rollback();
                 throw;
             }
+            finally{
+                acceso.CerrarConexion(conexion);
+            }
         }
 
         public int actualizarEstadoVenta(int IdVenta, string Estado)
         {
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
             string consulta = "update Ventas set estado = @estado where idVenta = @idVenta";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
             sqlCommand.Parameters.AddWithValue("@estado", Estado);
             sqlCommand.Parameters.AddWithValue("@idVenta", IdVenta);
 
-            conexion.CerrarConexion();
-            return sqlCommand.ExecuteNonQuery();
+            int resultado = sqlCommand.ExecuteNonQuery();
+
+            acceso.CerrarConexion(conexion);
+
+            return resultado;
 
         }
 
-        public Venta obtenerVentaPorId(int idVenta)
+        public Venta? obtenerVentaPorId(int idVenta)
         {
-            AccesoDatos conexion = new AccesoDatos();
-            Venta venta = new Venta(); // o Venta venta = null; ?
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
             string consulta = "select idVenta, idUsuario, fecha, total, estado from Ventas where idVenta = @idventa";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
             sqlCommand.Parameters.AddWithValue("@idventa", idVenta);
 
             SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
 
             if(sqlDataReader.Read()) {
 
-                venta = new Venta()
+                Venta venta = new Venta()
                 {
                     IdVenta = (int)sqlDataReader["idVenta"],
                     IdUsuario = (int)sqlDataReader["idUsuario"],
@@ -85,10 +92,11 @@ namespace API_luceritoStore.Data
                     Estado = sqlDataReader["estado"].ToString(),
                     Detalle = new List<DetalleVenta>()
                 };
+                return venta;
             }
-            
-            conexion.CerrarConexion();
-            return venta;
+
+            acceso.CerrarConexion(conexion);
+            return null;
         }
     }
 }

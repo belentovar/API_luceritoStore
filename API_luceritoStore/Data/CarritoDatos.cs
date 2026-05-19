@@ -8,62 +8,74 @@ namespace API_luceritoStore.Data
     {
         public Carrito obtenerCarritoPorUsuario(int idUsuario)
         {
-            AccesoDatos conexion = new AccesoDatos();
-            Carrito carrito = new Carrito();
-
             string consulta = "SELECT idCarrito, idUsuario FROM Carritos WHERE idUsuario = @idUsuario";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
-            sqlCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
+            AccesoDatos acceso = new AccesoDatos(); // <-
+            Carrito carrito = new Carrito();
 
-            SqlDataReader reader = sqlCommand.ExecuteReader();
+            SqlConnection conexion = acceso.ObtenerConexion(); // <-
 
-            if (reader.Read())
+            try
             {
-                carrito = new Carrito()
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion); // <-
+                sqlCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
+
+                SqlDataReader reader = sqlCommand.ExecuteReader();
+
+                if (reader.Read())
                 {
-                    idCarrito = (int)reader["idCarrito"],
-                    idUsuario = (int)reader["idUsuario"],
-                };
+                    carrito = new Carrito()
+                    {
+                        idCarrito = (int)reader["idCarrito"],
+                        idUsuario = (int)reader["idUsuario"],
+                    };
+                }
+            }
+            finally
+            {
+                acceso.CerrarConexion(conexion); // <-
             }
 
-            conexion.CerrarConexion();
+
             return carrito;
         }
 
         public int crearCarrito(int idUsuario)
         {
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = @"INSERT INTO Carritos (idUsuario, fechaCreacion)
                         VALUES (@idUsuario, @fechaCreacion);
                         SELECT SCOPE_IDENTITY();";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
 
             sqlCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
             sqlCommand.Parameters.AddWithValue("@fechaCreacion", DateTime.Now);
 
             int idGenerado = Convert.ToInt32(sqlCommand.ExecuteScalar());
 
-            conexion.CerrarConexion();
+            acceso.CerrarConexion(conexion);
             return idGenerado;  //devuelde el id del carrito nuevo
         }
 
 
         public int vaciarCarrito(int idCarrito)
         {
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "DELETE FROM CarritoProductos WHERE idCarrito = @idCarrito";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
 
             sqlCommand.Parameters.AddWithValue("@idCarrito", idCarrito);
 
             int filas = sqlCommand.ExecuteNonQuery();
 
-            conexion.CerrarConexion();
+            acceso.CerrarConexion(conexion);
             return filas;
         }
     }

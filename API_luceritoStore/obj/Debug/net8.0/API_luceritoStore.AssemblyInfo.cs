@@ -11,10 +11,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("1ecd3735-d9fa-484a-8586-21e8d7c9eb1f")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("API_luceritoStore")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+79dd874364121484829b83a2db3a3c10c56738dd")]
 [assembly: System.Reflection.AssemblyProductAttribute("API_luceritoStore")]
 [assembly: System.Reflection.AssemblyTitleAttribute("API_luceritoStore")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

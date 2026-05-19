@@ -7,12 +7,13 @@ namespace API_luceritoStore.Data
     {
         public int agregarProducto(int idCarrito, int idProducto, int cantidad)
         {
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = @"INSERT INTO CarritoProductos (idCarrito, idProducto, cantidad)
                         VALUES (@idCarrito, @idProducto, @cantidad)";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
 
             sqlCommand.Parameters.AddWithValue("@idCarrito", idCarrito);
             sqlCommand.Parameters.AddWithValue("@idProducto", idProducto);
@@ -20,13 +21,14 @@ namespace API_luceritoStore.Data
 
             int filas = sqlCommand.ExecuteNonQuery();
 
-            conexion.CerrarConexion();
+            acceso.CerrarConexion(conexion);
             return filas;
         }
 
         public List<CarritoProducto> obtenerProductosCarrito(int idCarrito)
         {
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
             List<CarritoProducto> productos = new List<CarritoProducto>();
 
             string consulta = @"SELECT cp.idCarritoProducto, cp.idCarrito, cp.idProducto, cp.cantidad,
@@ -35,7 +37,7 @@ namespace API_luceritoStore.Data
                         INNER JOIN Productos p ON cp.idProducto = p.idProducto
                         WHERE cp.idCarrito = @idCarrito";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
             sqlCommand.Parameters.AddWithValue("@idCarrito", idCarrito);
 
             SqlDataReader reader = sqlCommand.ExecuteReader();
@@ -59,42 +61,44 @@ namespace API_luceritoStore.Data
                 productos.Add(carritoProducto);
             }
 
-            conexion.CerrarConexion();
+            acceso.CerrarConexion(conexion);
             return productos;
         }
 
         public int actualizarCantidad(int idCarritoProducto, int cantidad)
         {
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = @"UPDATE CarritoProductos
                         SET cantidad = @cantidad
                         WHERE idCarritoProducto = @idCarritoProducto";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
 
             sqlCommand.Parameters.AddWithValue("@cantidad", cantidad);
             sqlCommand.Parameters.AddWithValue("@idCarritoProducto", idCarritoProducto);
 
             int filas = sqlCommand.ExecuteNonQuery();
 
-            conexion.CerrarConexion();
+            acceso.CerrarConexion(conexion);
             return filas;
         }
 
         public int eliminarProducto(int idCarritoProducto)
         {
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "DELETE FROM CarritoProductos WHERE idCarritoProducto = @idCarritoProducto";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
 
             sqlCommand.Parameters.AddWithValue("@idCarritoProducto", idCarritoProducto);
 
             int filas = sqlCommand.ExecuteNonQuery();
 
-            conexion.CerrarConexion();
+            acceso.CerrarConexion(conexion);
             return filas;
         }
     }

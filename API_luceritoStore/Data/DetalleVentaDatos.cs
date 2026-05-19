@@ -8,7 +8,8 @@ namespace API_luceritoStore.Data
     {
         public List<Venta> listarDetalleVenta(int idUsuario)
         {
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
             List<Venta> ventas = new List<Venta>();
 
             string consulta = "SELECT v.idVenta, v.idUsuario, v.fecha, v.total, v.estado, " +
@@ -20,7 +21,7 @@ namespace API_luceritoStore.Data
                   "WHERE v.idUsuario = @idUsuario " +
                   "ORDER BY v.idVenta";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
             sqlCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
 
             SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
@@ -61,8 +62,8 @@ namespace API_luceritoStore.Data
                 }
                     
             }
-            
-            conexion.CerrarConexion();
+
+            acceso.CerrarConexion(conexion);
             return ventas;
         }
 

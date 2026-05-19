@@ -78,3 +78,4 @@ B:\Practica c\API_luceritoStore\API_luceritoStore\obj\Debug\net8.0\refint\API_lu
 B:\Practica c\API_luceritoStore\API_luceritoStore\obj\Debug\net8.0\API_luceritoStore.pdb
 B:\Practica c\API_luceritoStore\API_luceritoStore\obj\Debug\net8.0\API_luceritoStore.genruntimeconfig.cache
 B:\Practica c\API_luceritoStore\API_luceritoStore\obj\Debug\net8.0\ref\API_luceritoStore.dll
+B:\Practica c\API_luceritoStore\API_luceritoStore\obj\Debug\net8.0\API_luceritoStore.sourcelink.json

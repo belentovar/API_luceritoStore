@@ -16,16 +16,19 @@ namespace API_luceritoStore.Data
                 sqlConnection.Open();
                 return sqlConnection;
             }
-            catch (Exception ex) {
-                return sqlConnection;
+            catch (Exception)
+            {
+                throw; // ???
             }
+
         }
 
-        public SqlConnection CerrarConexion()
+        public void CerrarConexion(SqlConnection conexion)
         {
-            SqlConnection sqlConnection = new SqlConnection(cadenaConexion);
-            sqlConnection.Close();
-            return sqlConnection;
+            if (conexion != null)
+            {
+                conexion.Close();
+            }
         }
     }
 }

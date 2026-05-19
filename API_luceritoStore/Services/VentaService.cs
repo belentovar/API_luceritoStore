@@ -33,18 +33,19 @@ namespace API_luceritoStore.Services
                 producto = productosDatos.obtenerProductoPorId(idProducto);
 
                 if (producto == null) //si el producto no existe
-                { 
-                    return 0;
+                {
+                    throw new Exception("No existe el producto");
                 }
 
                 if (detalle.Cantidad > producto.Stock) //si no hay suficiente stock
                 {
-                    return 0;
+                    throw new Exception("No hay suficiente stock");
                 }
 
                 if (detalle.Cantidad <= 0) //se valida la cantidad
                 {
-                    return 0;
+
+                    throw new InvalidOperationException("Error en la cantidad");
                 }
 
                 detalle.PrecioUnitario = producto.Precio; //guardo precioU ahora por si dspues cambia el precio del prod

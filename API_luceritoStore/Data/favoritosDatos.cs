@@ -9,13 +9,14 @@ namespace API_luceritoStore.Data
 
         public bool existeFavorito(int idUsuario, int idProducto)
         {
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "select * from Favoritos where idUsuario=@idUsua and idProducto=@idProd";
 
             try
             {
-                SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
                 sqlCommand.Parameters.AddWithValue("@IdUsua", idUsuario);
                 sqlCommand.Parameters.AddWithValue("@IdProd", idProducto);
                 SqlDataReader reader = sqlCommand.ExecuteReader();
@@ -23,15 +24,16 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                conexion.CerrarConexion();  
+                acceso.CerrarConexion(conexion);
             }
            
         }
 
         public bool agregarFavoritos(int idUsuario, int idProducto)
         {
-            AccesoDatos conexion = new AccesoDatos();
-            
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
+
             string consulta = "insert into Favoritos (IdUsuario, IdProducto) values (@IdUsua, @IdProd)";
 
             if(existeFavorito(idUsuario, idProducto))
@@ -41,7 +43,7 @@ namespace API_luceritoStore.Data
 
             try
             {
-                SqlCommand sqlCommand = new SqlCommand(consulta, conexion.ObtenerConexion());
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
                 sqlCommand.Parameters.AddWithValue("@IdUsua", idUsuario);
                 sqlCommand.Parameters.AddWithValue("@IdProd", idProducto);
                 
@@ -53,20 +55,21 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                conexion.CerrarConexion();
+                acceso.CerrarConexion(conexion);
             }
                 
         }
 
         public int eliminarFavorito(int idFavorito)
         {
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "DELETE FROM Favoritos WHERE idFavorito = @idFavorito";
 
             try
             {
-                SqlCommand comando = new SqlCommand(consulta, conexion.ObtenerConexion());
+                SqlCommand comando = new SqlCommand(consulta, conexion);
                 comando.Parameters.AddWithValue("@idFavorito", idFavorito);
 
                 return comando.ExecuteNonQuery();
@@ -74,22 +77,23 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                conexion.CerrarConexion();
+                acceso.CerrarConexion(conexion);
             }
         }
 
         public List<Producto> listarFavoritosPorUsuario(int idUsuario)
         {
             List<Producto> productos = new List<Producto>();
-            AccesoDatos conexion = new AccesoDatos();
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "select p.idProducto, p.idCategoria, p.nombreProducto, p.precio, p.detalle, p.imagenProducto, p.stock"
                               +" from Favoritos f INNER JOIN Productos p on f.idProducto = p.idProducto WHERE f.idUsuario = @idUsua";
 
             try
             {
-                SqlCommand comando = new SqlCommand(consulta, conexion.ObtenerConexion());
-                comando.Parameters.AddWithValue("@idUsuario", idUsuario);
+                SqlCommand comando = new SqlCommand(consulta, conexion);
+                comando.Parameters.AddWithValue("@idUsua", idUsuario);
 
                 SqlDataReader sqlDataReader = comando.ExecuteReader();
 
@@ -111,7 +115,7 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                conexion.CerrarConexion();
+                acceso.CerrarConexion(conexion);
             }
             
         }

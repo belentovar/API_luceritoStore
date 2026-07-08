@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("API_luceritoStore")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+79dd874364121484829b83a2db3a3c10c56738dd")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c65f17872de1cfd471967877f2a955aa24e7e0cd")]
 [assembly: System.Reflection.AssemblyProductAttribute("API_luceritoStore")]
 [assembly: System.Reflection.AssemblyTitleAttribute("API_luceritoStore")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

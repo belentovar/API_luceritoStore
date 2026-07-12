@@ -31,15 +31,18 @@ namespace API_luceritoStore.Data
 
         public bool agregarFavoritos(int idUsuario, int idProducto)
         {
-            AccesoDatos acceso = new AccesoDatos();
-            SqlConnection conexion = acceso.ObtenerConexion();
-
-            string consulta = "insert into Favoritos (IdUsuario, IdProducto) values (@IdUsua, @IdProd)";
-
+            // Se valida ANTES de abrir la conexion. Si el favorito ya existe se sale
+            // aca, asi no queda una conexion abierta sin cerrar (era una fuga de conexion:
+            // el 'return false' salia antes del try/finally que la cierra).
             if(existeFavorito(idUsuario, idProducto))
             {
                 return false;
             }
+
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
+
+            string consulta = "insert into Favoritos (IdUsuario, IdProducto) values (@IdUsua, @IdProd)";
 
             try
             {

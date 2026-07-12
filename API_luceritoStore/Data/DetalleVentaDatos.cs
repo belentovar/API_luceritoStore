@@ -21,6 +21,10 @@ namespace API_luceritoStore.Data
                   "WHERE v.idUsuario = @idUsuario " +
                   "ORDER BY v.idVenta";
 
+            // Se envuelve en try/finally para asegurar que la conexion se cierre
+            // siempre, aunque falle la lectura (antes no habia y podia quedar abierta).
+            try
+            {
             SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
             sqlCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
 
@@ -63,7 +67,12 @@ namespace API_luceritoStore.Data
                     
             }
 
-            acceso.CerrarConexion(conexion);
+            }
+            finally
+            {
+                acceso.CerrarConexion(conexion);
+            }
+
             return ventas;
         }
 

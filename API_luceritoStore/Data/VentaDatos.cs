@@ -32,10 +32,20 @@ namespace API_luceritoStore.Data
                 venta.IdVenta = idGenerado;
 
                 DetalleVentaDatos detalleDatos = new DetalleVentaDatos();
+                ProductosDatos productosDatos = new ProductosDatos();
 
                 foreach (DetalleVenta detalle in venta.Detalle)
                 {
                     detalleDatos.insertarDetalle(idGenerado, detalle, conexion, transaccion);
+
+                    // Se descuenta el stock DENTRO de la misma transaccion. Si el UPDATE guardado
+                    // no afecta ninguna fila es que no hay stock suficiente: se lanza excepcion y
+                    // el catch hace Rollback, cancelando venta + detalles + descuentos juntos.
+                    int filasStock = productosDatos.descontarStock(detalle.idProducto, detalle.Cantidad, conexion, transaccion);
+                    if (filasStock == 0)
+                    {
+                        throw new Exception("No hay suficiente stock para el producto " + detalle.idProducto);
+                    }
                 }
 
                 transaccion.Commit();

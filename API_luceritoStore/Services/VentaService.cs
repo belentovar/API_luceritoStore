@@ -53,13 +53,13 @@ namespace API_luceritoStore.Services
                 venta.Total += producto.Precio * detalle.Cantidad; //validar total o devolver total real
             }
 
-            foreach (DetalleVenta detalle in venta.Detalle)
-            {
-                Producto produ = productosDatos.obtenerProductoPorId(detalle.idProducto);
-
-                produ.Stock -= detalle.Cantidad;
-                productosDatos.actualizarProducto(produ);
-            }
+            // El descuento de stock ya NO se hace aca. Se movio adentro de la transaccion de
+            // VentaDatos.insertarVenta (UPDATE guardado con WHERE stock >= cantidad) para que sea
+            // atomico: o se registra la venta y se descuenta el stock juntos, o no pasa nada.
+            // Antes se descontaba aca en conexiones sueltas: si fallaba el insert el stock quedaba
+            // mal, y ante pedidos simultaneos habia sobreventa (race condition).
+            // El chequeo de stock del bucle de arriba queda como validacion temprana/amigable,
+            // pero la garantia real ahora la da la base de datos dentro de la transaccion.
 
             venta.Fecha = DateTime.Now; //asignar fecha
             venta.Estado = EstadoVenta.Pendiente;// asignar estado

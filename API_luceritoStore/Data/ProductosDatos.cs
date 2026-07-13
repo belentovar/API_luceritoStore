@@ -210,5 +210,22 @@ namespace API_luceritoStore.Data
         }
 
 
+        public int descontarStock(int idProducto, int cantidad, SqlConnection conn, SqlTransaction transaccion) /// -------- DESCONTAR STOCK (ATOMICO)
+        {
+            // UPDATE guardado: solo descuenta si hay stock suficiente (WHERE stock >= @cantidad).
+            // Corre dentro de la transaccion de la venta. Devuelve las filas afectadas: si es 0,
+            // no habia stock suficiente (o no existe el producto) y la venta se debe abortar.
+            // Asi la verificacion y el descuento son una sola operacion: no hay sobreventa.
+            string consulta = @"UPDATE Productos SET stock = stock - @cantidad
+                        WHERE idProducto = @idProducto AND stock >= @cantidad";
+
+            SqlCommand cmd = new SqlCommand(consulta, conn, transaccion);
+            cmd.Parameters.AddWithValue("@cantidad", cantidad);
+            cmd.Parameters.AddWithValue("@idProducto", idProducto);
+
+            return cmd.ExecuteNonQuery();
+        }
+
+
     }
 }

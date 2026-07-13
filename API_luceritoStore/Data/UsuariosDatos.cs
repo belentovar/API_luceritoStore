@@ -135,7 +135,7 @@ namespace API_luceritoStore.Data
             string consulta = "select idUsuario, nombreUsuario, claveUsuario, correo from Usuarios where nombreUsuario = @nombreU";
             AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
-            Usuario usuario = new Usuario();
+            Usuario usuario = null;
 
             try
             {

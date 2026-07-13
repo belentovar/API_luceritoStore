@@ -16,9 +16,9 @@ namespace API_luceritoStore.Data
 
             try
             {
-                string consulta = @"INSERT INTO Ventas (idUsuario, fecha, total, estado)
-                                   VALUES (@idUsuario, @fecha, @total, @estado);
-                                   SELECT SCOPE_IDENTITY();";
+                string consulta = @"INSERT INTO Ventas (idUsuario, fecha, total, estado, idLocalidad, direccion, metodoPago)
+                           VALUES (@idUsuario, @fecha, @total, @estado, @idLocalidad, @direccion, @metodoPago);
+                           SELECT SCOPE_IDENTITY();";
 
                 SqlCommand cmd = new SqlCommand(consulta, conexion, transaccion);
 
@@ -26,6 +26,9 @@ namespace API_luceritoStore.Data
                 cmd.Parameters.AddWithValue("@fecha", venta.Fecha);
                 cmd.Parameters.AddWithValue("@total", venta.Total);
                 cmd.Parameters.AddWithValue("@estado", venta.Estado);
+                cmd.Parameters.AddWithValue("@idLocalidad", venta.IdLocalidad);
+                cmd.Parameters.AddWithValue("@direccion", venta.Direccion);
+                cmd.Parameters.AddWithValue("@metodoPago", venta.MetodoPago);
 
                 int idGenerado = Convert.ToInt32(cmd.ExecuteScalar());
 
@@ -33,9 +36,23 @@ namespace API_luceritoStore.Data
 
                 DetalleVentaDatos detalleDatos = new DetalleVentaDatos();
 
+                ProductosDatos productosDatos = new ProductosDatos();
+
+
                 foreach (DetalleVenta detalle in venta.Detalle)
                 {
                     detalleDatos.insertarDetalle(idGenerado, detalle, conexion, transaccion);
+
+
+                    // Se descuenta el stock DENTRO de la misma transaccion. Si el UPDATE guardado
+                    // no afecta ninguna fila es que no hay stock suficiente: se lanza excepcion y
+                    // el catch hace Rollback, cancelando venta + detalles + descuentos juntos.
+                    int filasStock = productosDatos.descontarStock(detalle.idProducto, detalle.Cantidad, conexion, transaccion);
+                    if (filasStock == 0)
+                    {
+                        throw new Exception("No hay suficiente stock para el producto " + detalle.idProducto);
+                    }
+
                 }
 
                 transaccion.Commit();
@@ -58,45 +75,67 @@ namespace API_luceritoStore.Data
             SqlConnection conexion = acceso.ObtenerConexion();
             string consulta = "update Ventas set estado = @estado where idVenta = @idVenta";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
-            sqlCommand.Parameters.AddWithValue("@estado", Estado);
-            sqlCommand.Parameters.AddWithValue("@idVenta", IdVenta);
+            try
+            {
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
+                sqlCommand.Parameters.AddWithValue("@estado", Estado);
+                sqlCommand.Parameters.AddWithValue("@idVenta", IdVenta);
 
-            int resultado = sqlCommand.ExecuteNonQuery();
-
-            acceso.CerrarConexion(conexion);
-
-            return resultado;
-
+                return sqlCommand.ExecuteNonQuery();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                // Se cierra siempre en finally para evitar fugas de conexion si hay excepcion.
+                acceso.CerrarConexion(conexion);
+            }
         }
 
         public Venta? obtenerVentaPorId(int idVenta)
         {
             AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
-            string consulta = "select idVenta, idUsuario, fecha, total, estado from Ventas where idVenta = @idventa";
+            string consulta = "select idVenta, idUsuario, fecha, total, estado, idLocalidad, direccion, metodoPago " +
+                       "from Ventas where idVenta = @idventa";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
-            sqlCommand.Parameters.AddWithValue("@idventa", idVenta);
+            try
+            {
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
+                sqlCommand.Parameters.AddWithValue("@idventa", idVenta);
 
-            SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
+                SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
 
-            if(sqlDataReader.Read()) {
-
-                Venta venta = new Venta()
+                if (sqlDataReader.Read())
                 {
-                    IdVenta = (int)sqlDataReader["idVenta"],
-                    IdUsuario = (int)sqlDataReader["idUsuario"],
-                    Fecha = (DateTime)sqlDataReader["fecha"],
-                    Total = (decimal)sqlDataReader["total"],
-                    Estado = sqlDataReader["estado"].ToString(),
-                    Detalle = new List<DetalleVenta>()
-                };
-                return venta;
-            }
+                    Venta venta = new Venta()
+                    {
+                        IdVenta = (int)sqlDataReader["idVenta"],
+                        IdUsuario = (int)sqlDataReader["idUsuario"],
+                        Fecha = (DateTime)sqlDataReader["fecha"],
+                        Total = (decimal)sqlDataReader["total"],
+                        Estado = sqlDataReader["estado"].ToString(),
+                        IdLocalidad = (int)sqlDataReader["idLocalidad"],
+                        Direccion = sqlDataReader["direccion"].ToString(),
+                        MetodoPago = sqlDataReader["metodoPago"].ToString(),
+                        Detalle = new List<DetalleVenta>()
+                    };
+                    return venta;
+                }
 
-            acceso.CerrarConexion(conexion);
-            return null;
+                return null;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+
+                acceso.CerrarConexion(conexion);
+            }
         }
     }
 }

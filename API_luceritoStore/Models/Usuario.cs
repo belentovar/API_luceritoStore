@@ -5,7 +5,9 @@
         public int IdUsuario { get; set; }
         public string NombreUsuario { get; set; }
         public string ClaveUsuario { get; set; }
+        public string Rol { get; set; }
         public string Correo {  get; set; }
+        public string Estado { get; set; }
 
     }
 }

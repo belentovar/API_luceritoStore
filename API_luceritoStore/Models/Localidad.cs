@@ -8,5 +8,6 @@
 
         // opcional: si querés traer el nombre de la provincia junto con la localidad
         public string NombreProvincia { get; set; }
+        public bool Estado { get; set; }
     }
 }

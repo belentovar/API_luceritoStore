@@ -7,9 +7,13 @@
         public DateTime Fecha { get; set; }
         public decimal Total { get; set; }
         public int IdLocalidad { get; set; }
+        public string NombreLocalidad { get; set; }
+        public string NombreProvincia { get; set; }
         public string Direccion { get; set; }
         public string MetodoPago { get; set; }
         public string Estado { get; set; }
+
+        public string TipoEntrega { get; set; }
 
         public List<DetalleVenta> Detalle { get; set; }
 

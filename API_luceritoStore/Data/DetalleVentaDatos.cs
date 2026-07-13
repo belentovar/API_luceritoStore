@@ -11,68 +11,67 @@ namespace API_luceritoStore.Data
             AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
             List<Venta> ventas = new List<Venta>();
-
             string consulta = "SELECT v.idVenta, v.idUsuario, v.fecha, v.total, v.estado, " +
-                  "dv.cantidad, dv.precioUnitario, dv.idDetalleVenta, " +
-                  "p.idProducto, p.NombreProducto, p.Precio, p.Detalle, p.ImagenProducto " +
-                  "FROM Ventas v " +
-                  "LEFT JOIN DetalleVentas dv ON v.idVenta = dv.idVenta " +
-                  "LEFT JOIN Productos p ON dv.idProducto = p.idProducto " +
-                  "WHERE v.idUsuario = @idUsuario " +
-                  "ORDER BY v.idVenta";
-
-            // Se envuelve en try/finally para asegurar que la conexion se cierre
-            // siempre, aunque falle la lectura (antes no habia y podia quedar abierta).
+                      "v.tipoEntrega, v.metodoPago, v.direccion, v.idLocalidad, " +
+                      "l.nombreLocalidad, pr.nombreProvincia, " +
+                      "dv.cantidad, dv.precioUnitario, dv.idDetalleVenta, " +
+                      "p.idProducto, p.NombreProducto, p.Precio, p.Detalle, p.ImagenProducto " +
+                      "FROM Ventas v " +
+                      "LEFT JOIN Localidades l ON v.idLocalidad = l.idLocalidad " +
+                      "LEFT JOIN Provincias pr ON l.idProvincia = pr.idProvincia " +
+                      "LEFT JOIN DetalleVentas dv ON v.idVenta = dv.idVenta " +
+                      "LEFT JOIN Productos p ON dv.idProducto = p.idProducto " +
+                      "WHERE v.idUsuario = @idUsuario " +
+                      "ORDER BY v.idVenta"; 
             try
             {
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
-            sqlCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
-
-            SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
-
-            while(sqlDataReader.Read()) {
-
-                Venta? venta = ventas.FirstOrDefault(venta => venta.IdVenta == (int)sqlDataReader["idVenta"]);
-
-                if (venta == null) {
-                    venta = new Venta()
-                    {
-                        IdVenta = (int)sqlDataReader["idVenta"],
-                        IdUsuario = (int)sqlDataReader["idUsuario"],
-                        Fecha = (DateTime)sqlDataReader["fecha"],
-                        Total = (decimal)sqlDataReader["total"],
-                        Estado = sqlDataReader["estado"].ToString(),
-                        Detalle = new List<DetalleVenta>()
-                    };
-
-                    ventas.Add(venta);
-                }
-
-                if (sqlDataReader["idDetalleVenta"] != DBNull.Value)
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
+                sqlCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
+                SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
+                while (sqlDataReader.Read())
                 {
-                    venta.Detalle.Add(new DetalleVenta()
+                    Venta? venta = ventas.FirstOrDefault(venta => venta.IdVenta == (int)sqlDataReader["idVenta"]);
+                    if (venta == null)
                     {
-                        IdDetalleVenta = (int)sqlDataReader["idDetalleVenta"],
-                        IdVenta = (int)sqlDataReader["idVenta"],
-                        Cantidad = (int)sqlDataReader["cantidad"],
-                        PrecioUnitario = (decimal)sqlDataReader["precioUnitario"],
-                        Producto = new Producto()
+                        venta = new Venta()
                         {
-                            IdProducto = (int)sqlDataReader["idProducto"],
-                            NombreProducto = sqlDataReader["nombreProducto"].ToString(),
-                            Precio = (decimal)sqlDataReader["precio"]
-                        }
-                    });
+                            IdVenta = (int)sqlDataReader["idVenta"],
+                            IdUsuario = (int)sqlDataReader["idUsuario"],
+                            Fecha = (DateTime)sqlDataReader["fecha"],
+                            Total = (decimal)sqlDataReader["total"],
+                            Estado = sqlDataReader["estado"].ToString(),
+                            TipoEntrega = sqlDataReader["tipoEntrega"].ToString(),
+                            MetodoPago = sqlDataReader["metodoPago"].ToString(),
+                            Direccion = sqlDataReader["direccion"] == DBNull.Value ? null : sqlDataReader["direccion"].ToString(),
+                            IdLocalidad = sqlDataReader["idLocalidad"] == DBNull.Value ? 0 : (int)sqlDataReader["idLocalidad"],
+                            NombreLocalidad = sqlDataReader["nombreLocalidad"] == DBNull.Value ? null : sqlDataReader["nombreLocalidad"].ToString(),
+                            NombreProvincia = sqlDataReader["nombreProvincia"] == DBNull.Value ? null : sqlDataReader["nombreProvincia"].ToString(),
+                            Detalle = new List<DetalleVenta>()
+                        };
+                        ventas.Add(venta);
+                    }
+                    if (sqlDataReader["idDetalleVenta"] != DBNull.Value)
+                    {
+                        venta.Detalle.Add(new DetalleVenta()
+                        {
+                            IdDetalleVenta = (int)sqlDataReader["idDetalleVenta"],
+                            IdVenta = (int)sqlDataReader["idVenta"],
+                            Cantidad = (int)sqlDataReader["cantidad"],
+                            PrecioUnitario = (decimal)sqlDataReader["precioUnitario"],
+                            Producto = new Producto()
+                            {
+                                IdProducto = (int)sqlDataReader["idProducto"],
+                                NombreProducto = sqlDataReader["nombreProducto"].ToString(),
+                                Precio = (decimal)sqlDataReader["precio"]
+                            }
+                        });
+                    }
                 }
-                    
-            }
-
             }
             finally
             {
                 acceso.CerrarConexion(conexion);
             }
-
             return ventas;
         }
 

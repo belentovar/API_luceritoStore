@@ -16,9 +16,9 @@ namespace API_luceritoStore.Data
 
             try
             {
-                string consulta = @"INSERT INTO Ventas (idUsuario, fecha, total, estado, idLocalidad, direccion, metodoPago)
-                           VALUES (@idUsuario, @fecha, @total, @estado, @idLocalidad, @direccion, @metodoPago);
-                           SELECT SCOPE_IDENTITY();";
+                string consulta = @"INSERT INTO Ventas (idUsuario, fecha, total, estado, idLocalidad, direccion, metodoPago, tipoEntrega)
+                   VALUES (@idUsuario, @fecha, @total, @estado, @idLocalidad, @direccion, @metodoPago, @tipoEntrega);
+                   SELECT SCOPE_IDENTITY();";
 
                 SqlCommand cmd = new SqlCommand(consulta, conexion, transaccion);
 
@@ -26,9 +26,10 @@ namespace API_luceritoStore.Data
                 cmd.Parameters.AddWithValue("@fecha", venta.Fecha);
                 cmd.Parameters.AddWithValue("@total", venta.Total);
                 cmd.Parameters.AddWithValue("@estado", venta.Estado);
-                cmd.Parameters.AddWithValue("@idLocalidad", venta.IdLocalidad);
-                cmd.Parameters.AddWithValue("@direccion", venta.Direccion);
+                cmd.Parameters.AddWithValue("@idLocalidad", venta.IdLocalidad == 0 ? (object)DBNull.Value : venta.IdLocalidad);
+                cmd.Parameters.AddWithValue("@direccion", string.IsNullOrWhiteSpace(venta.Direccion) ? (object)DBNull.Value : venta.Direccion);
                 cmd.Parameters.AddWithValue("@metodoPago", venta.MetodoPago);
+                cmd.Parameters.AddWithValue("@tipoEntrega", venta.TipoEntrega);
 
                 int idGenerado = Convert.ToInt32(cmd.ExecuteScalar());
 
@@ -98,8 +99,13 @@ namespace API_luceritoStore.Data
         {
             AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
-            string consulta = "select idVenta, idUsuario, fecha, total, estado, idLocalidad, direccion, metodoPago " +
-                       "from Ventas where idVenta = @idventa";
+            string consulta = "SELECT v.idVenta, v.idUsuario, v.fecha, v.total, v.estado, " +
+               "v.idLocalidad, v.direccion, v.metodoPago, v.tipoEntrega, " +
+               "l.nombreLocalidad, pr.nombreProvincia " +
+               "FROM Ventas v " +
+               "LEFT JOIN Localidades l ON v.idLocalidad = l.idLocalidad " +
+               "LEFT JOIN Provincias pr ON l.idProvincia = pr.idProvincia " +
+               "WHERE v.idVenta = @idventa";
 
             try
             {
@@ -117,9 +123,12 @@ namespace API_luceritoStore.Data
                         Fecha = (DateTime)sqlDataReader["fecha"],
                         Total = (decimal)sqlDataReader["total"],
                         Estado = sqlDataReader["estado"].ToString(),
-                        IdLocalidad = (int)sqlDataReader["idLocalidad"],
-                        Direccion = sqlDataReader["direccion"].ToString(),
+                        TipoEntrega = sqlDataReader["tipoEntrega"].ToString(),
                         MetodoPago = sqlDataReader["metodoPago"].ToString(),
+                        IdLocalidad = sqlDataReader["idLocalidad"] == DBNull.Value ? 0 : (int)sqlDataReader["idLocalidad"],
+                        Direccion = sqlDataReader["direccion"] == DBNull.Value ? null : sqlDataReader["direccion"].ToString(),
+                        NombreLocalidad = sqlDataReader["nombreLocalidad"] == DBNull.Value ? null : sqlDataReader["nombreLocalidad"].ToString(),
+                        NombreProvincia = sqlDataReader["nombreProvincia"] == DBNull.Value ? null : sqlDataReader["nombreProvincia"].ToString(),
                         Detalle = new List<DetalleVenta>()
                     };
                     return venta;

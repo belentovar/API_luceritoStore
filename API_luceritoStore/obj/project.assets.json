@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
     "net8.0": {
       "Azure.Core/1.50.0": {
@@ -1933,23 +1933,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\belen\\.nuget\\packages\\": {},
+    "C:\\Users\\anabe\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "B:\\Practica c\\API_luceritoStore\\API_luceritoStore\\API_luceritoStore.csproj",
+      "projectUniqueName": "C:\\Users\\anabe\\Downloads\\API_luceritoStore-main\\API_luceritoStore-main\\API_luceritoStore\\API_luceritoStore.csproj",
       "projectName": "API_luceritoStore",
-      "projectPath": "B:\\Practica c\\API_luceritoStore\\API_luceritoStore\\API_luceritoStore.csproj",
-      "packagesPath": "C:\\Users\\belen\\.nuget\\packages\\",
-      "outputPath": "B:\\Practica c\\API_luceritoStore\\API_luceritoStore\\obj\\",
+      "projectPath": "C:\\Users\\anabe\\Downloads\\API_luceritoStore-main\\API_luceritoStore-main\\API_luceritoStore\\API_luceritoStore.csproj",
+      "packagesPath": "C:\\Users\\anabe\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\anabe\\Downloads\\API_luceritoStore-main\\API_luceritoStore-main\\API_luceritoStore\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\belen\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\anabe\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -1962,6 +1962,7 @@
       },
       "frameworks": {
         "net8.0": {
+          "framework": "net8.0",
           "targetAlias": "net8.0",
           "projectReferences": {}
         }
@@ -1976,10 +1977,11 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.300"
+      "SdkAnalysisLevel": "10.0.300"
     },
     "frameworks": {
       "net8.0": {
+        "framework": "net8.0",
         "targetAlias": "net8.0",
         "dependencies": {
           "BCrypt.Net-Next": {
@@ -2014,7 +2016,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.301/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

@@ -6,12 +6,16 @@ namespace API_luceritoStore.Data
 {
     public class CarritoDatos
     {
-        public Carrito obtenerCarritoPorUsuario(int idUsuario)
+        // Devuelve null si el usuario no tiene carrito, igual que obtenerProductoPorId y
+        // obtenerLocalidadPorId. Antes se inicializaba con new Carrito() antes del reader,
+        // asi que nunca devolvia null: al usuario sin carrito le llegaba un objeto con
+        // idCarrito = 0, y el chequeo == null del service no entraba jamas.
+        public Carrito? obtenerCarritoPorUsuario(int idUsuario)
         {
             string consulta = "SELECT idCarrito, idUsuario FROM Carritos WHERE idUsuario = @idUsuario";
 
             AccesoDatos acceso = new AccesoDatos(); // <-
-            Carrito carrito = new Carrito();
+            Carrito? carrito = null;
 
             SqlConnection conexion = acceso.ObtenerConexion(); // <-
 
@@ -50,15 +54,19 @@ namespace API_luceritoStore.Data
                         VALUES (@idUsuario, @fechaCreacion);
                         SELECT SCOPE_IDENTITY();";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
+            try
+            {
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
+                sqlCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
+                sqlCommand.Parameters.AddWithValue("@fechaCreacion", DateTime.Now);
 
-            sqlCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
-            sqlCommand.Parameters.AddWithValue("@fechaCreacion", DateTime.Now);
-
-            int idGenerado = Convert.ToInt32(sqlCommand.ExecuteScalar());
-
-            acceso.CerrarConexion(conexion);
-            return idGenerado;  //devuelde el id del carrito nuevo
+                int idGenerado = Convert.ToInt32(sqlCommand.ExecuteScalar());
+                return idGenerado; 
+            }
+            finally
+            {
+                acceso.CerrarConexion(conexion);
+            }
         }
 
 
@@ -69,14 +77,17 @@ namespace API_luceritoStore.Data
 
             string consulta = "DELETE FROM CarritoProductos WHERE idCarrito = @idCarrito";
 
-            SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
-
-            sqlCommand.Parameters.AddWithValue("@idCarrito", idCarrito);
-
-            int filas = sqlCommand.ExecuteNonQuery();
-
-            acceso.CerrarConexion(conexion);
-            return filas;
+            try
+            {
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
+                sqlCommand.Parameters.AddWithValue("@idCarrito", idCarrito);
+                int filas = sqlCommand.ExecuteNonQuery();
+                return filas;
+            }
+            finally
+            {
+                acceso.CerrarConexion(conexion);
+            }
         }
     }
 }

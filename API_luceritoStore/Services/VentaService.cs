@@ -53,13 +53,37 @@ namespace API_luceritoStore.Services
                 venta.Total += producto.Precio * detalle.Cantidad; //validar total o devolver total real
             }
 
-            // El descuento de stock ya NO se hace aca. Se movio adentro de la transaccion de
-            // VentaDatos.insertarVenta (UPDATE guardado con WHERE stock >= cantidad) para que sea
-            // atomico: o se registra la venta y se descuenta el stock juntos, o no pasa nada.
-            // Antes se descontaba aca en conexiones sueltas: si fallaba el insert el stock quedaba
-            // mal, y ante pedidos simultaneos habia sobreventa (race condition).
-            // El chequeo de stock del bucle de arriba queda como validacion temprana/amigable,
-            // pero la garantia real ahora la da la base de datos dentro de la transaccion.
+
+            // --- Validacion del envio ---
+            // El metodo de pago NO se valida aca: ya lo garantiza el CHECK constraint en la BDD.
+            string tipoEntrega = venta.TipoEntrega?.ToLower();
+
+            if (tipoEntrega != "envio" && tipoEntrega != "retiro")
+            {
+                throw new InvalidOperationException("Tipo de entrega invalido");
+            }
+
+            if (tipoEntrega == "envio")
+            {
+                // Envio: la direccion es obligatoria.
+                if (string.IsNullOrWhiteSpace(venta.Direccion))
+                {
+                    throw new InvalidOperationException("La direccion es obligatoria para envio");
+                }
+
+                // La localidad tiene que existir Y estar activa. obtenerLocalidadPorId ya filtra
+                // activo=1, asi que si devuelve null es porque no existe o esta dada de baja.
+                LocalidadDatos localidadDatos = new LocalidadDatos();
+                if (localidadDatos.obtenerLocalidadPorId(venta.IdLocalidad) == null)
+                {
+                    throw new InvalidOperationException("La localidad no existe o no esta habilitada para envio");
+                }
+            }
+            else // retiro: no se envia a ningun lado, se limpian los datos de envio.
+            {
+                venta.Direccion = null;
+                venta.IdLocalidad = 0; // VentaDatos convierte 0 -> DBNull
+            }
 
             venta.Fecha = DateTime.Now; //asignar fecha
             venta.Estado = EstadoVenta.Pendiente;// asignar estado
@@ -75,7 +99,8 @@ namespace API_luceritoStore.Services
 
             venta = ventaDatos.obtenerVentaPorId(IdVenta);
             if (venta == null)
-            {
+            { 
+
                 return 0;
             }
 
@@ -88,6 +113,24 @@ namespace API_luceritoStore.Services
             }
 
             return ventaDatos.actualizarEstadoVenta(IdVenta, Estado);
+        }
+
+        public Venta? obtenerVentaPorId(int idVenta)
+        {
+            // Se consulta DetalleVentaDatos y no VentaDatos: VentaDatos.obtenerVentaPorId trae solo
+            // la cabecera y deja Detalle como lista vacia, asi que la venta salia sin los productos
+            // vendidos (total sin renglones). obtenerVentaConDetalle resuelve cabecera y detalle en
+            // una sola consulta con JOIN.
+            // Tampoco hace falta chequear existencia antes: obtenerVentaConDetalle ya devuelve null
+            // cuando la venta no existe. Consultar primero para preguntar si existe era un viaje
+            // extra a la base para traer la misma fila dos veces.
+            if (idVenta <= 0)
+            {
+                return null;
+            }
+
+            DetalleVentaDatos detalleDatos = new DetalleVentaDatos();
+            return detalleDatos.obtenerVentaConDetalle(idVenta);
         }
     }
 }

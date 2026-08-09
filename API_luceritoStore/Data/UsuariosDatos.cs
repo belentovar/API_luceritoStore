@@ -14,15 +14,18 @@ namespace API_luceritoStore.Data
             AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
-            string consulta = "insert into Usuarios (nombreUsuario, claveUsuario, correo) " +
-                              "values (@nombreU, @claveU, @correoU)";
+            string rol = string.IsNullOrWhiteSpace(usuario.Rol) ? "cliente" : usuario.Rol.ToLower();
+
+            string consulta = "insert into Usuarios (nombreUsuario, claveUsuario, correo, rol) " +
+                              "values (@nombreU, @claveU, @correoU, @rol)";
 
             try{
-                
+
                 SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
                 sqlCommand.Parameters.AddWithValue("@nombreU", usuario.NombreUsuario);
                 sqlCommand.Parameters.AddWithValue("@claveU", claveHasheada);
                 sqlCommand.Parameters.AddWithValue("@correoU", usuario.Correo);
+                sqlCommand.Parameters.AddWithValue("@rol", rol);
                 int filasAfectadas = sqlCommand.ExecuteNonQuery();
                 return filasAfectadas;
             }
@@ -35,11 +38,11 @@ namespace API_luceritoStore.Data
             
         }
 
-        public int eliminarUsuario(int idUsuario)
+        public int DarDeBajaUsuario(int idUsuario)
         {
             AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
-            string consulta = "delete from Usuarios where idUsuario = @idUsua";
+            string consulta = "update Usuarios set activo = 0 where idUsuario = @idUsua";
 
 
             try
@@ -52,6 +55,30 @@ namespace API_luceritoStore.Data
             catch(Exception)
             { 
                 throw; 
+            }
+            finally
+            {
+                acceso.CerrarConexion(conexion);
+            }
+        }
+
+        public int DarDeAltaUsuario(int idUsuario)
+        {
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
+            string consulta = "update Usuarios set activo = 1 where idUsuario = @idUsua";
+
+
+            try
+            {
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
+                sqlCommand.Parameters.AddWithValue("@idUsua", idUsuario);
+                int filasAfectadas = sqlCommand.ExecuteNonQuery();
+                return filasAfectadas;
+            }
+            catch (Exception)
+            {
+                throw;
             }
             finally
             {
@@ -79,7 +106,9 @@ namespace API_luceritoStore.Data
                         IdUsuario = (int)sdr["idUsuario"],
                         NombreUsuario = sdr["nombreUsuario"].ToString(),
                         ClaveUsuario = sdr["claveUsuario"].ToString(),
-                        Correo = sdr["correo"].ToString()
+                        Correo = sdr["correo"].ToString(),
+                        Rol = sdr["rol"].ToString(),
+                        Activo = (bool)sdr["activo"]
                     };
                     return usuario;
                 }
@@ -115,8 +144,13 @@ namespace API_luceritoStore.Data
                     {
                         IdUsuario = (int)sdr["idUsuario"],
                         NombreUsuario = sdr["nombreUsuario"].ToString(),
-                        Correo = sdr["correo"].ToString()
+                        Correo = sdr["correo"].ToString(),
+                        Rol = sdr["rol"].ToString(),
+                        Activo = (bool)sdr["activo"]
                     };
+                    // ClaveUsuario se deja sin mapear a proposito: este metodo se usa para saber si
+                    // el usuario existe, y para eso no hace falta cargar el hash de la clave en memoria.
+                    // El unico que necesita el hash es ObtenerUsuarioPorLogin, para verificarlo.
                 }
                 return null;
             }
@@ -132,7 +166,7 @@ namespace API_luceritoStore.Data
 
         public Usuario ObtenerUsuarioPorLogin(string nombreUsuario, string claveUsuario)
         {
-            string consulta = "select idUsuario, nombreUsuario, claveUsuario, correo from Usuarios where nombreUsuario = @nombreU";
+            string consulta = "select idUsuario, nombreUsuario, claveUsuario, correo from Usuarios where nombreUsuario = @nombreU and activo = 1";
             AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
             Usuario usuario = null;

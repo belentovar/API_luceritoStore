@@ -38,7 +38,7 @@ namespace API_luceritoStore.Data
             SqlConnection conexion = acceso.ObtenerConexion();
 
 
-            string consulta = "SELECT * FROM Productos";
+            string consulta = "SELECT * FROM Productos where activo=1";
             
             try
             {
@@ -102,7 +102,7 @@ namespace API_luceritoStore.Data
             AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
-            string consulta = "select * from Productos where idCategoria = @idCat";
+            string consulta = "select * from Productos where idCategoria = @idCat and activo = 1";
 
             try
             {
@@ -124,9 +124,9 @@ namespace API_luceritoStore.Data
         {
             AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
-            string consulta = "select * from Productos where nombreProducto like @p1 or " +
+            string consulta = "select * from Productos where (nombreProducto like @p1 or " +
                               "nombreProducto like @p2 or " +
-                              "nombreProducto like @p3";
+                              "nombreProducto like @p3) and activo = 1";
             
             try{
 
@@ -147,9 +147,9 @@ namespace API_luceritoStore.Data
             }
         }
 
-        public int eliminarProducto(int idProduc) /// ------------------> BORRAR PRODUCTO POR ID
+        public int darDeBajaProducto(int idProduc) /// ------------------> BORRAR PRODUCTO POR ID
         {
-            string consulta = "delete from Productos where idProducto = @idProduc";
+            string consulta = "update Productos set activo = 0 where idProducto = @idProduc";
             AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
@@ -162,6 +162,30 @@ namespace API_luceritoStore.Data
                 return filasAfectadas;
             }
             catch (Exception) {
+                throw;
+            }
+            finally
+            {
+                acceso.CerrarConexion(conexion);
+            }
+        }
+
+        public int darDeALtaProducto(int idProduc) 
+        {
+            string consulta = "update Productos set activo = 1 where idProducto = @idProduc";
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
+
+            try
+            {
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
+                sqlCommand.Parameters.AddWithValue("@idProduc", idProduc);
+                int filasAfectadas = sqlCommand.ExecuteNonQuery();
+
+                return filasAfectadas;
+            }
+            catch (Exception)
+            {
                 throw;
             }
             finally
@@ -207,6 +231,38 @@ namespace API_luceritoStore.Data
                 acceso.CerrarConexion(conexion);
             }
 
+        }
+
+
+        public int AgregarProducto(Producto producto) /// ------------------> AGREGAR PRODUCTO
+        {
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
+
+            // activo se fija en 1: un producto recien creado siempre nace activo.
+            string consulta = @"INSERT INTO Productos (idCategoria, nombreProducto, precio, detalle, imagenProducto, stock, activo)
+                        VALUES (@idCategoria, @nombre, @precio, @detalle, @imagen, @stock, 1)";
+
+            try
+            {
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
+                sqlCommand.Parameters.AddWithValue("@idCategoria", producto.IdCategoria);
+                sqlCommand.Parameters.AddWithValue("@nombre", producto.NombreProducto);
+                sqlCommand.Parameters.AddWithValue("@precio", producto.Precio);
+                sqlCommand.Parameters.AddWithValue("@detalle", producto.Detalle);
+                sqlCommand.Parameters.AddWithValue("@imagen", producto.ImagenProducto);
+                sqlCommand.Parameters.AddWithValue("@stock", producto.Stock);
+
+                return sqlCommand.ExecuteNonQuery();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                acceso.CerrarConexion(conexion);
+            }
         }
 
 

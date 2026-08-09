@@ -1,5 +1,7 @@
 using API_luceritoStore.Data;
 using API_luceritoStore.Models;
+using API_luceritoStore.Services;
+using Microsoft.Extensions.Configuration;
 //var builder = WebApplication.CreateBuilder(args);
 
 //// Add services to the container.
@@ -26,20 +28,14 @@ using API_luceritoStore.Models;
 
 //app.Run();
 
-DetalleVentaDatos detalleVentaDatos = new DetalleVentaDatos();
-List<Venta> ventas = new List<Venta>();
 
-ventas = detalleVentaDatos.listarDetalleVenta(1);
 
-foreach (Venta venta in ventas)
-{
-    Console.WriteLine("IdUsuario: " + venta.IdUsuario);
 
-    foreach(DetalleVenta detalleVenta in venta.Detalle)
-    {
-        Console.WriteLine("Cantidad: " + detalleVenta.Cantidad);
-        Console.WriteLine("Nombre Producto: " + detalleVenta.Producto.NombreProducto);
-        Console.WriteLine("precio: " + detalleVenta.Producto.Precio);
-    }
-}
+
+
+
+
+
+
+
 

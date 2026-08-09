@@ -6,6 +6,7 @@ namespace API_luceritoStore.Services
     public class ProductoService
     {
 
+
         public int actualizarProducto(Producto producto)
         {
             categoriaDatos catDatos = new categoriaDatos();
@@ -46,6 +47,11 @@ namespace API_luceritoStore.Services
             }
 
             return prodDatos.listarProductosPorCategoria(idCategoria);
+        }
+
+        public int agregarProducto(int idCarrito, int idProducto, int cantidad)
+        { 
+            
         }
     }
 }

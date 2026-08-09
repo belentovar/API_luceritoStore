@@ -10,5 +10,6 @@
         public string Detalle { get; set; }
         public string ImagenProducto { get; set; }
         public int Stock { get; set; }
+        public bool Activo { get; set; }
     }
 }

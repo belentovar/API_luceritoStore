@@ -7,7 +7,7 @@ namespace API_luceritoStore.Data
 {
     public class VentaDatos
     {
-        public int insertarVenta(Venta venta)
+        public int insertarVenta(Venta venta) //----------FIJARSE COMO FUNCIONA DESCONTARSTOCK ACA
         {
             AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
@@ -90,7 +90,6 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                // Se cierra siempre en finally para evitar fugas de conexion si hay excepcion.
                 acceso.CerrarConexion(conexion);
             }
         }
@@ -132,7 +131,7 @@ namespace API_luceritoStore.Data
                         Detalle = new List<DetalleVenta>()
                     };
                     return venta;
-                }
+                }  
 
                 return null;
             }
@@ -143,6 +142,63 @@ namespace API_luceritoStore.Data
             finally
             {
 
+                acceso.CerrarConexion(conexion);
+            }
+        }
+
+        // SIN USO POR AHORA. No lo llama nadie
+        public List<Venta> listarVentasPorUsuario(int idUsuario)
+        {
+            AccesoDatos acceso = new AccesoDatos();
+            SqlConnection conexion = acceso.ObtenerConexion();
+            // Mismos JOINs que obtenerVentaPorId para traer los nombres derivados.
+            // Ordenado por fecha descendente: el historial muestra primero lo mas reciente.
+            // El otro metodo parecido es listarVentasConDetallePorUsuario en detalleventadatos.
+            string consulta = "SELECT v.idVenta, v.idUsuario, v.fecha, v.total, v.estado, " +
+               "v.idLocalidad, v.direccion, v.metodoPago, v.tipoEntrega, " +
+               "l.nombreLocalidad, pr.nombreProvincia " +
+               "FROM Ventas v " +
+               "LEFT JOIN Localidades l ON v.idLocalidad = l.idLocalidad " +
+               "LEFT JOIN Provincias pr ON l.idProvincia = pr.idProvincia " +
+               "WHERE v.idUsuario = @idUsuario " +
+               "ORDER BY v.fecha DESC";
+
+            List<Venta> ventas = new List<Venta>();
+
+            try
+            {
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
+                sqlCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
+
+                SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
+
+                while (sqlDataReader.Read())
+                {
+                    ventas.Add(new Venta()
+                    {
+                        IdVenta = (int)sqlDataReader["idVenta"],
+                        IdUsuario = (int)sqlDataReader["idUsuario"],
+                        Fecha = (DateTime)sqlDataReader["fecha"],
+                        Total = (decimal)sqlDataReader["total"],
+                        Estado = sqlDataReader["estado"].ToString(),
+                        TipoEntrega = sqlDataReader["tipoEntrega"].ToString(),
+                        MetodoPago = sqlDataReader["metodoPago"].ToString(),
+                        IdLocalidad = sqlDataReader["idLocalidad"] == DBNull.Value ? 0 : (int)sqlDataReader["idLocalidad"],
+                        Direccion = sqlDataReader["direccion"] == DBNull.Value ? null : sqlDataReader["direccion"].ToString(),
+                        NombreLocalidad = sqlDataReader["nombreLocalidad"] == DBNull.Value ? null : sqlDataReader["nombreLocalidad"].ToString(),
+                        NombreProvincia = sqlDataReader["nombreProvincia"] == DBNull.Value ? null : sqlDataReader["nombreProvincia"].ToString(),
+                        Detalle = new List<DetalleVenta>()
+                    });
+                }
+
+                return ventas;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
                 acceso.CerrarConexion(conexion);
             }
         }

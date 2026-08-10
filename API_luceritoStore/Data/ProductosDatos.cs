@@ -20,6 +20,7 @@ namespace API_luceritoStore.Data
                 {
                     IdProducto = (int)sqlDataReader["idProducto"],
                     IdCategoria = (int)sqlDataReader["idCategoria"],
+                    Codigo = sqlDataReader["codigo"].ToString(),
                     NombreProducto = sqlDataReader["nombreProducto"].ToString(),
                     Precio = (decimal)sqlDataReader["precio"],
                     Detalle = sqlDataReader["detalle"].ToString(),
@@ -75,6 +76,7 @@ namespace API_luceritoStore.Data
                     {
                         IdProducto = (int)sqlDataReader["idProducto"],
                         IdCategoria = (int)sqlDataReader["idCategoria"],
+                        Codigo = sqlDataReader["codigo"].ToString(),
                         NombreProducto = sqlDataReader["nombreProducto"].ToString(),
                         Precio = (decimal)sqlDataReader["precio"],
                         Detalle = sqlDataReader["detalle"].ToString(),
@@ -199,8 +201,9 @@ namespace API_luceritoStore.Data
             AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
-            string consulta = @"UPDATE Productos 
+            string consulta = @"UPDATE Productos
                         SET idCategoria = @idCategoria,
+                            codigo = @codigo,
                             nombreProducto = @nombre,
                             precio = @precio,
                             detalle = @detalle,
@@ -214,6 +217,7 @@ namespace API_luceritoStore.Data
 
                 sqlCommand.Parameters.AddWithValue("@idProd", producto.IdProducto);
                 sqlCommand.Parameters.AddWithValue("@idCategoria", producto.IdCategoria);
+                sqlCommand.Parameters.AddWithValue("@codigo", producto.Codigo);
                 sqlCommand.Parameters.AddWithValue("@nombre", producto.NombreProducto);
                 sqlCommand.Parameters.AddWithValue("@precio", producto.Precio);
                 sqlCommand.Parameters.AddWithValue("@detalle", producto.Detalle);
@@ -240,13 +244,14 @@ namespace API_luceritoStore.Data
             SqlConnection conexion = acceso.ObtenerConexion();
 
             // activo se fija en 1: un producto recien creado siempre nace activo.
-            string consulta = @"INSERT INTO Productos (idCategoria, nombreProducto, precio, detalle, imagenProducto, stock, activo)
-                        VALUES (@idCategoria, @nombre, @precio, @detalle, @imagen, @stock, 1)";
+            string consulta = @"INSERT INTO Productos (idCategoria, codigo, nombreProducto, precio, detalle, imagenProducto, stock, activo)
+                        VALUES (@idCategoria, @codigo, @nombre, @precio, @detalle, @imagen, @stock, 1)";
 
             try
             {
                 SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
                 sqlCommand.Parameters.AddWithValue("@idCategoria", producto.IdCategoria);
+                sqlCommand.Parameters.AddWithValue("@codigo", producto.Codigo);
                 sqlCommand.Parameters.AddWithValue("@nombre", producto.NombreProducto);
                 sqlCommand.Parameters.AddWithValue("@precio", producto.Precio);
                 sqlCommand.Parameters.AddWithValue("@detalle", producto.Detalle);
@@ -282,6 +287,28 @@ namespace API_luceritoStore.Data
             return cmd.ExecuteNonQuery();
         }
 
+        // Se busca por codigo y no por nombre: el codigo es la clave unica del producto.
+        // Dos productos distintos pueden llamarse igual (dos ediciones de un libro, dos
+        // remeras negras de marcas distintas), asi que el nombre no sirve para detectar
+        // duplicados. La garantia real la da el UNIQUE de la columna codigo; esto solo
+        // evita el viaje al INSERT y devuelve un mensaje entendible.
+        public bool ExisteProducto(string codigo)
+        {
+            string consulta = "SELECT TOP 1 1 FROM Productos where codigo=@codigo";
 
+            AccesoDatos accesoDatos = new AccesoDatos();
+            SqlConnection conexion = accesoDatos.ObtenerConexion();
+            try
+            {
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
+                sqlCommand.Parameters.AddWithValue("@codigo", codigo);
+                object existe = sqlCommand.ExecuteScalar();
+                return existe != null;
+            }
+            finally
+            {
+                accesoDatos.CerrarConexion(conexion);
+            }
+        }
     }
 }

@@ -12,27 +12,64 @@ namespace API_luceritoStore.Services
             categoriaDatos catDatos = new categoriaDatos();
             ProductosDatos prodDatos = new ProductosDatos();
 
-            if(producto == null) {
-                return 0; //si el producto esta vacio
+            // --- el objeto ---
+            if (producto == null)
+            {
+                throw new InvalidOperationException("El producto no puede ser nulo.");
             }
-            if (producto.IdProducto <= 0) return -1;
-            if (producto.Precio <= 0) return -2; //si el precio es menor igual a cero
-            if (producto.Stock < 0) return -3; //si el stock es negativo
-            if (string.IsNullOrWhiteSpace(producto.NombreProducto)) return -4; // si es null, Empty, White Space
-            if (producto.NombreProducto.Length > 25) return -5;
 
+            // --- los campos ---
+            if (string.IsNullOrWhiteSpace(producto.Codigo))
+            {
+                throw new InvalidOperationException("El codigo del producto es obligatorio.");
+            }
+
+            if (producto.Codigo.Length > LargoMaximoCodigo)
+            {
+                throw new InvalidOperationException("El codigo no puede superar los " + LargoMaximoCodigo + " caracteres.");
+            }
+
+            if (string.IsNullOrWhiteSpace(producto.NombreProducto))
+            {
+                throw new InvalidOperationException("El nombre del producto es obligatorio.");
+            }
+
+            if (producto.NombreProducto.Length > LargoMaximoNombre)
+            {
+                throw new InvalidOperationException("El nombre no puede superar los " + LargoMaximoNombre + " caracteres.");
+            }
+
+            // --- los rangos ---
+            if (producto.IdProducto <= 0)
+            {
+                throw new InvalidOperationException("El id del producto es invalido.");
+            }
+
+            if (producto.Precio <= 0)
+            {
+                throw new InvalidOperationException("El precio debe ser mayor a cero.");
+            }
+
+            if (producto.Stock < 0)
+            {
+                throw new InvalidOperationException("El stock no puede ser negativo.");
+            }
+
+            if (producto.IdCategoria <= 0)
+            {
+                throw new InvalidOperationException("El id de categoria es invalido.");
+            }
+
+            // --- la base ---
             if (!catDatos.ExisteCategoria(producto.IdCategoria))
             {
-                return -6; // La categoría enviada no es válida
+                throw new InvalidOperationException("La categoria no existe.");
             }
 
-            Producto? productoExistente = prodDatos.obtenerProductoPorId(producto.IdProducto);
-
-            if (productoExistente == null)
+            if (prodDatos.obtenerProductoPorId(producto.IdProducto) == null)
             {
-                return -7; // El producto no existe
+                throw new InvalidOperationException("El producto no existe.");
             }
-
 
             return prodDatos.actualizarProducto(producto);
         }
@@ -49,9 +86,78 @@ namespace API_luceritoStore.Services
             return prodDatos.listarProductosPorCategoria(idCategoria);
         }
 
-        public int agregarProducto(int idCarrito, int idProducto, int cantidad)
-        { 
-            
+        // Debe coincidir con el largo de la columna nombreProducto en la base.
+        // Verificar en SSMS y ajustar: validar distinto del esquema rechaza nombres
+        // que la base acepta, o deja pasar nombres que SQL Server trunca.
+        private const int LargoMaximoNombre = 30;
+
+        // Debe coincidir con el largo de la columna codigo en la base.
+        private const int LargoMaximoCodigo = 20;
+
+        public int agregarProducto(Producto producto)
+        {
+            // Las validaciones van de lo barato a lo caro: primero el objeto y sus campos,
+            // despues los rangos, y al final las consultas a la base. Asi no se abre una
+            // conexion para descubrir un error que se veia sin salir de memoria, y ningun
+            // chequeo toca una propiedad de un objeto que todavia no se valido.
+
+            // --- el objeto ---
+            if (producto == null)
+            {
+                throw new InvalidOperationException("El producto no puede ser nulo.");
+            }
+
+            // --- los campos ---
+            if (string.IsNullOrWhiteSpace(producto.Codigo))
+            {
+                throw new InvalidOperationException("El codigo del producto es obligatorio.");
+            }
+
+            if (producto.Codigo.Length > LargoMaximoCodigo)
+            {
+                throw new InvalidOperationException("El codigo no puede superar los " + LargoMaximoCodigo + " caracteres.");
+            }
+
+            if (string.IsNullOrWhiteSpace(producto.NombreProducto))
+            {
+                throw new InvalidOperationException("El nombre del producto es obligatorio.");
+            }
+
+            if (producto.NombreProducto.Length > LargoMaximoNombre)
+            {
+                throw new InvalidOperationException("El nombre no puede superar los " + LargoMaximoNombre + " caracteres.");
+            }
+
+            // --- los rangos ---
+            if (producto.Precio <= 0)
+            {
+                throw new InvalidOperationException("El precio debe ser mayor a cero.");
+            }
+
+            if (producto.Stock < 0)
+            {
+                throw new InvalidOperationException("El stock no puede ser negativo.");
+            }
+
+            if (producto.IdCategoria <= 0)
+            {
+                throw new InvalidOperationException("El id de categoria es invalido.");
+            }
+
+            // --- la base ---
+            categoriaDatos categoriaDatos = new categoriaDatos();
+            if (!categoriaDatos.ExisteCategoria(producto.IdCategoria))
+            {
+                throw new InvalidOperationException("La categoria no existe.");
+            }
+
+            ProductosDatos productosDatos = new ProductosDatos();
+            if (productosDatos.ExisteProducto(producto.Codigo))
+            {
+                throw new InvalidOperationException("Ya existe un producto con ese codigo.");
+            }
+
+            return productosDatos.AgregarProducto(producto);
         }
     }
 }

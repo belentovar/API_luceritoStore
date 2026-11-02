@@ -169,6 +169,86 @@ la culpa a tu servidor por un error de él.
 
 ---
 
+## Tema F — Contrato de errores
+
+### F.1 · Una sola forma de avisar un error
+
+> **RECORDAR:** toda la capa de servicio avisa los errores **lanzando
+> `NegocioException`**. Nunca con `return 0`, `return -1` ni `return null`.
+
+**Por qué:** en C# nada obliga a mirar un valor devuelto. El compilador no se
+queja si llamás un método y tiras su resultado a la basura. Entonces cualquier
+esquema basado en el retorno **se puede ignorar sin que nadie avise**.
+
+Eso no es teoría: pasó en este proyecto. `insertarVenta` devolvía `0` cuando
+fallaba, y `checkoutDesdeCarrito` seguía de largo y **vaciaba el carrito** sin
+haber vendido nada. Una excepción corta la ejecución; no se puede ignorar.
+
+### F.2 · El valor de retorno significa una sola cosa
+
+> **RECORDAR:** si un método devuelve algo, es porque salió bien.
+
+**Por qué:** antes, el `int` de `AgregarUsuario` era a veces un código de error
+(`-2`) y a veces el resultado real (filas insertadas). Quien lo recibía tenía que
+distinguirlos por convención ("si es negativo es error") en lugar de por tipo.
+Las convenciones se olvidan; los tipos los chequea el compilador.
+
+### F.3 · El enum son categorías, no casos
+
+> **RECORDAR:** `ErrorNegocio` tiene cuatro valores, y cada uno corresponde a un
+> código HTTP. El caso particular lo cuenta el **mensaje**, no el enum.
+
+```
+DatosInvalidos  → 400 Bad Request   el cliente mandó algo mal
+NoEncontrado    → 404 Not Found     el pedido estaba bien, eso no está acá
+Duplicado       → 409 Conflict      choca con algo que ya existe
+SinStock        → 409 Conflict      choca con el estado actual
+```
+
+**Por qué pocos valores:** el enum existe para que el controller elija el código
+HTTP. Si tuviera veinte valores serían códigos numéricos con otro disfraz. "La
+clave debe tener al menos 8 caracteres" y "el precio debe ser mayor a cero" son
+el mismo `DatosInvalidos`: lo que los distingue es el texto que ve la persona.
+
+**Regla práctica:** "no existe" nunca es un 400. Un `400` dice "escribiste mal el
+pedido"; un `404` dice "el pedido estaba bien, pero eso no está acá".
+
+### F.4 · El recorrido de una excepción
+
+```
+UsuarioService lanza  →  sube por la pila  →  el controller la atrapa
+                                                      ↓
+                                      lee ex.Codigo  → elige el código HTTP
+                                      lee ex.Message → el texto para la persona
+                                                      ↓
+                                              el front lo muestra
+```
+
+> **RECORDAR:** el service lanza el error, el controller lo traduce a HTTP, el
+> front lo muestra. La API no muestra nada: devuelve un código y un JSON.
+
+**Por qué esa división:** la misma API puede atender un sitio web, una app de
+celular y Postman. Si el service supiera de pantallas, quedaría atado a una sola.
+
+Si nadie atrapa la excepción, ASP.NET responde `500 Internal Server Error`, que
+significa "mi servidor se rompió" — una mentira cuando en realidad el cliente
+mandó datos incompletos. Por eso el `try/catch` del controller no es opcional.
+
+### F.5 · Cuándo `null` sí está bien
+
+> **RECORDAR:** `null` es una respuesta legítima cuando el llamador **no podía
+> saber** que iba a fallar.
+
+`Login` devuelve `null` con credenciales inválidas, y eso está bien: no es un
+error de programa, es la respuesta a "¿existe alguien con estos datos?". El
+controller lo traduce a `401`. Lo mismo con una búsqueda por id que no encuentra
+nada → `404`.
+
+Donde `null` estaba mal era en "me mandaste datos incompletos": eso sí es un
+error, y el llamador podía evitarlo.
+
+---
+
 ## Tema E — Principios generales
 
 ### E.1 · Fallar temprano

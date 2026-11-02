@@ -1,5 +1,6 @@
 ﻿using API_luceritoStore.Data;
 using API_luceritoStore.Models;
+using API_luceritoStore.Models.Errores;
 
 namespace API_luceritoStore.Services
 {
@@ -19,60 +20,60 @@ namespace API_luceritoStore.Services
             // --- el objeto ---
             if (producto == null)
             {
-                throw new InvalidOperationException("El producto no puede ser nulo.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El producto no puede ser nulo.");
             }
 
             // --- los campos ---
             if (string.IsNullOrWhiteSpace(producto.Codigo))
             {
-                throw new InvalidOperationException("El codigo del producto es obligatorio.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El codigo del producto es obligatorio.");
             }
 
             if (producto.Codigo.Length > LargoMaximoCodigo)
             {
-                throw new InvalidOperationException("El codigo no puede superar los " + LargoMaximoCodigo + " caracteres.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El codigo no puede superar los " + LargoMaximoCodigo + " caracteres.");
             }
 
             if (string.IsNullOrWhiteSpace(producto.NombreProducto))
             {
-                throw new InvalidOperationException("El nombre del producto es obligatorio.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El nombre del producto es obligatorio.");
             }
 
             if (producto.NombreProducto.Length > LargoMaximoNombre)
             {
-                throw new InvalidOperationException("El nombre no puede superar los " + LargoMaximoNombre + " caracteres.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El nombre no puede superar los " + LargoMaximoNombre + " caracteres.");
             }
 
             // --- los rangos ---
             if (producto.IdProducto <= 0)
             {
-                throw new InvalidOperationException("El id del producto es invalido.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El id del producto es invalido.");
             }
 
             if (producto.Precio <= 0)
             {
-                throw new InvalidOperationException("El precio debe ser mayor a cero.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El precio debe ser mayor a cero.");
             }
 
             if (producto.Stock < 0)
             {
-                throw new InvalidOperationException("El stock no puede ser negativo.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El stock no puede ser negativo.");
             }
 
             if (producto.IdCategoria <= 0)
             {
-                throw new InvalidOperationException("El id de categoria es invalido.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El id de categoria es invalido.");
             }
 
             // --- la base ---
             if (!categoriaDatos.ExisteCategoria(producto.IdCategoria))
             {
-                throw new InvalidOperationException("La categoria no existe.");
+                throw new NegocioException(ErrorNegocio.NoEncontrado, "La categoria no existe.");
             }
 
             if (productosDatos.obtenerProductoPorId(producto.IdProducto) == null)
             {
-                throw new InvalidOperationException("El producto no existe.");
+                throw new NegocioException(ErrorNegocio.NoEncontrado, "El producto no existe.");
             }
 
             return productosDatos.actualizarProducto(producto);
@@ -82,7 +83,7 @@ namespace API_luceritoStore.Services
         public List<Producto> listarProductosPorCategoria(int idCategoria)
         {
             if (!categoriaDatos.ExisteCategoria(idCategoria)) {
-                throw new Exception("La categoría no existe.");
+                throw new NegocioException(ErrorNegocio.NoEncontrado, "La categoría no existe.");
             }
 
             return productosDatos.listarProductosPorCategoria(idCategoria);
@@ -98,55 +99,55 @@ namespace API_luceritoStore.Services
             // --- el objeto ---
             if (producto == null)
             {
-                throw new InvalidOperationException("El producto no puede ser nulo.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El producto no puede ser nulo.");
             }
 
             // --- los campos ---
             if (string.IsNullOrWhiteSpace(producto.Codigo))
             {
-                throw new InvalidOperationException("El codigo del producto es obligatorio.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El codigo del producto es obligatorio.");
             }
 
             if (producto.Codigo.Length > LargoMaximoCodigo)
             {
-                throw new InvalidOperationException("El codigo no puede superar los " + LargoMaximoCodigo + " caracteres.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El codigo no puede superar los " + LargoMaximoCodigo + " caracteres.");
             }
 
             if (string.IsNullOrWhiteSpace(producto.NombreProducto))
             {
-                throw new InvalidOperationException("El nombre del producto es obligatorio.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El nombre del producto es obligatorio.");
             }
 
             if (producto.NombreProducto.Length > LargoMaximoNombre)
             {
-                throw new InvalidOperationException("El nombre no puede superar los " + LargoMaximoNombre + " caracteres.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El nombre no puede superar los " + LargoMaximoNombre + " caracteres.");
             }
 
             // --- los rangos ---
             if (producto.Precio <= 0)
             {
-                throw new InvalidOperationException("El precio debe ser mayor a cero.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El precio debe ser mayor a cero.");
             }
 
             if (producto.Stock < 0)
             {
-                throw new InvalidOperationException("El stock no puede ser negativo.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El stock no puede ser negativo.");
             }
 
             if (producto.IdCategoria <= 0)
             {
-                throw new InvalidOperationException("El id de categoria es invalido.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El id de categoria es invalido.");
             }
 
             // --- la base ---
             if (!categoriaDatos.ExisteCategoria(producto.IdCategoria))
             {
-                throw new InvalidOperationException("La categoria no existe.");
+                throw new NegocioException(ErrorNegocio.NoEncontrado, "La categoria no existe.");
             }
 
             if (productosDatos.ExisteProducto(producto.Codigo))
             {
-                throw new InvalidOperationException("Ya existe un producto con ese codigo.");
+                throw new NegocioException(ErrorNegocio.Duplicado, "Ya existe un producto con ese codigo.");
             }
 
             return productosDatos.AgregarProducto(producto);
@@ -161,7 +162,7 @@ namespace API_luceritoStore.Services
         {
             if (idProducto <= 0)
             {
-                throw new InvalidOperationException("El id del producto es invalido.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El id del producto es invalido.");
             }
 
             return productosDatos.obtenerProductoPorId(idProducto);
@@ -171,7 +172,7 @@ namespace API_luceritoStore.Services
         {
             if (string.IsNullOrWhiteSpace(nombreProduc))
             {
-                throw new InvalidOperationException("El nombre a buscar es obligatorio.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El nombre a buscar es obligatorio.");
             }
 
             return productosDatos.listarProductosPorNombre(nombreProduc.Trim());
@@ -181,12 +182,12 @@ namespace API_luceritoStore.Services
         {
             if (idProducto <= 0)
             {
-                throw new InvalidOperationException("El id del producto es invalido.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El id del producto es invalido.");
             }
 
             if (productosDatos.obtenerProductoPorId(idProducto) == null)
             {
-                throw new InvalidOperationException("El producto no existe.");
+                throw new NegocioException(ErrorNegocio.NoEncontrado, "El producto no existe.");
             }
 
             return productosDatos.darDeBajaProducto(idProducto);
@@ -196,13 +197,13 @@ namespace API_luceritoStore.Services
         {
             if (idProducto <= 0)
             {
-                throw new InvalidOperationException("El id del producto es invalido.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El id del producto es invalido.");
             }
 
 
             if (productosDatos.obtenerProductoPorId(idProducto) == null)
             {
-                throw new InvalidOperationException("El producto no existe.");
+                throw new NegocioException(ErrorNegocio.NoEncontrado, "El producto no existe.");
             }
 
             return productosDatos.darDeALtaProducto(idProducto);

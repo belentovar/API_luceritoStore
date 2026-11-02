@@ -125,42 +125,63 @@ El `idUsuario` tiene que salir del token JWT, nunca del body.
 
 ---
 
-## ⏭️ Decisión pendiente: Bloque 4 — contrato de errores
+## ✅ Bloque 4 — Contrato de errores (COMPLETADO)
 
-Era el próximo paso acordado, antes de seguir escribiendo services.
+Toda la capa de servicio avisa los errores de una sola forma: lanzando
+`NegocioException`. Ya no quedan `return 0`, `return -1..-4`,
+`throw new Exception` genéricos ni `InvalidOperationException`.
 
-Hoy los services avisan los errores de tres formas distintas, a veces en el mismo
-método:
+Archivos nuevos en `Models/Errores/`:
 
-1. `return 0` — `VentaService.insertarVenta` cuando el usuario no existe o el
-   detalle está vacío.
-2. Excepciones — `throw new Exception("No existe el producto")`,
-   `throw new InvalidOperationException(...)`, 20 líneas más abajo en ese mismo método.
-3. Códigos negativos — `UsuarioService.AgregarUsuario` devuelve `-1`, `-2`, `-3`, `-4`.
+- `ErrorNegocio.cs` — enum con cuatro categorías: `DatosInvalidos`,
+  `NoEncontrado`, `Duplicado`, `SinStock`. Cada una corresponde a un código HTTP.
+- `NegocioException.cs` — hereda de `Exception` y agrega la propiedad `Codigo`.
+  El mensaje viaja en `Message` (heredado, vía `base(mensaje)`).
 
-**Por qué importa:** ya produjo un agujero real. En `checkoutDesdeCarrito`, si
-`insertarVenta` devuelve `0`, el código sigue de largo y **vacía el carrito** sin
-haber vendido nada. Con excepciones eso no podría pasar, porque cortan la ejecución.
+56 conversiones en total: `UsuarioService`, `VentaService`, `ProductoService`,
+`CarritoService`. Distribución final: 36 `DatosInvalidos`, 14 `NoEncontrado`,
+3 `Duplicado`, 3 `SinStock`.
 
-Además, los controllers tienen que traducir el resultado del service a un código
-HTTP (400, 404, 409). Con un `0` no se puede elegir cuál corresponde.
+Bug que esto cerró: `insertarVenta` devolvía `0` al fallar y
+`checkoutDesdeCarrito` seguía de largo, vaciando el carrito sin haber vendido.
 
-**Recomendación: excepciones para todo (opción A).** Razones: ya es la convención
-mayoritaria (`CarritoService` y `ProductoService` enteros la usan), no se puede
-ignorar por accidente, y el valor de retorno queda libre para el resultado real
-(`checkoutDesdeCarrito` devuelve el `idVenta`, no un código disfrazado).
+Único `return null` que queda a propósito: `UsuarioService.Login` con credenciales
+inválidas. No es un error de programa sino la respuesta a "¿existe alguien con
+estos datos?"; el controller lo traduce a `401`.
 
-Trabajo que implica: elegir 2 o 3 tipos de excepción, reemplazar los `return 0` de
-`VentaService` y los `-1..-4` de `UsuarioService`, cambiar los
-`throw new Exception(...)` genéricos por tipos concretos, y anotar la regla en el
-apunte.
+La regla completa, con el razonamiento, está en el Tema F del
+`APUNTE_INYECCION_DEPENDENCIAS.md`.
+
+### Lo que falta de esto: el `catch` del controller
+
+El mapeo enum → HTTP todavía no existe porque no hay controllers. Cuando se
+escriba el primero, va así:
+
+```csharp
+catch (NegocioException ex)
+{
+    int codigoHttp = ex.Codigo switch
+    {
+        ErrorNegocio.DatosInvalidos => 400,
+        ErrorNegocio.NoEncontrado   => 404,
+        ErrorNegocio.Duplicado      => 409,
+        ErrorNegocio.SinStock       => 409,
+        _                           => 500
+    };
+
+    return StatusCode(codigoHttp, new { error = ex.Message });
+}
+```
+
+Más adelante conviene mover ese bloque a un middleware, para escribirlo una sola
+vez en lugar de repetirlo en los 8 controllers.
 
 ---
 
 ## 📋 Orden de trabajo acordado
 
 ```
-Bloque 1 ✅  →  Bloque 3 (en progreso)  →  Bloque 4  →  Bloque 2  →  Controllers
+Bloque 1 ✅  →  Bloque 3 (en progreso)  →  Bloque 4 ✅  →  Bloque 2  →  Controllers
 ```
 
 El Bloque 4 se adelantó respecto del plan original: si se deja para el final, los

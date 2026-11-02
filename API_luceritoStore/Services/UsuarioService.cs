@@ -1,10 +1,11 @@
 ﻿using API_luceritoStore.Data;
 using API_luceritoStore.Models;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
+using API_luceritoStore.Models.Errores;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Writers;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace API_luceritoStore.Services
 {
@@ -23,24 +24,24 @@ namespace API_luceritoStore.Services
         {
             
             if(usuario.NombreUsuario == null || usuario.ClaveUsuario == null || usuario.Correo == null ){
-                    return -1; //Datos incompletos
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El nombre de usuario, la clave y el correo son obligatorios.");
             }
 
             Usuario user = usuariosDatos.ObtenerUsuarioPorNombre(usuario.NombreUsuario);
 
             if (user != null)
             {
-                return -2; // El usuario ya existe
+                throw new NegocioException(ErrorNegocio.Duplicado, "Ya existe un usuario con ese nombre.");
             }
 
             if(usuariosDatos.ExisteCorreo(usuario.Correo)) {
 
-                return -3; //ya existe ese correo
+                throw new NegocioException(ErrorNegocio.Duplicado, "Ya existe un usuario con ese correo.");
             }
 
             if (usuario.ClaveUsuario.Length < 8)
             {
-                return -4; // Clave demasiado corta
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "La clave debe tener al menos 8 caracteres.");
             }
 
             return usuariosDatos.AgregarUsuario(usuario);
@@ -51,7 +52,7 @@ namespace API_luceritoStore.Services
 
             if (usuario.NombreUsuario == null || usuario.ClaveUsuario == null)
             {
-                return null; //Datos incompletos
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El nombre de usuario y la clave son obligatorios.");
             }
 
             Usuario user = usuariosDatos.ObtenerUsuarioPorLogin(usuario.NombreUsuario, usuario.ClaveUsuario); 

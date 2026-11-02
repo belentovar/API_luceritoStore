@@ -1,5 +1,6 @@
-using API_luceritoStore.Data;
+﻿using API_luceritoStore.Data;
 using API_luceritoStore.Models;
+using API_luceritoStore.Models.Errores;
 
 namespace API_luceritoStore.Services
 {
@@ -22,12 +23,12 @@ namespace API_luceritoStore.Services
 
             if (idUsuario <= 0)
             {
-                throw new InvalidOperationException("El id de usuario es invalido.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El id de usuario es invalido.");
             }
 
             if (!usuariosDatos.ExisteUsuarioPorId(idUsuario))
             {
-                throw new InvalidOperationException("El idUsuario no existe");
+                throw new NegocioException(ErrorNegocio.NoEncontrado, "El idUsuario no existe");
             }
 
             Carrito? carrito = carritoDatos.obtenerCarritoPorUsuario(idUsuario);
@@ -56,12 +57,12 @@ namespace API_luceritoStore.Services
 
             if (idProducto <= 0)
             {
-                throw new InvalidOperationException("El id del producto es invalido.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El id del producto es invalido.");
             }
 
             if (cantidad <= 0)
             {
-                throw new InvalidOperationException("La cantidad debe ser mayor a cero.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "La cantidad debe ser mayor a cero.");
             }
 
             Carrito carrito = obtenerOCrearCarrito(idUsuario);
@@ -69,7 +70,7 @@ namespace API_luceritoStore.Services
             Producto? producto = productosDatos.obtenerProductoPorId(idProducto);
             if (producto == null)
             {
-                throw new InvalidOperationException("El producto no existe.");
+                throw new NegocioException(ErrorNegocio.NoEncontrado, "El producto no existe.");
             }
 
             CarritoProducto? existente = null;
@@ -91,7 +92,7 @@ namespace API_luceritoStore.Services
 
             if (cantidadFinal > producto.Stock)
             {
-                throw new InvalidOperationException("Stock insuficiente.");
+                throw new NegocioException(ErrorNegocio.SinStock, "Stock insuficiente.");
             }
 
             if (existente == null)
@@ -107,7 +108,7 @@ namespace API_luceritoStore.Services
 
             if (cantidad < 0)
             {
-                throw new InvalidOperationException("La cantidad no puede ser negativa.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "La cantidad no puede ser negativa.");
             }
 
             Carrito carrito = obtenerOCrearCarrito(idUsuario);
@@ -122,14 +123,14 @@ namespace API_luceritoStore.Services
             Producto? producto = productosDatos.obtenerProductoPorId(carritoProducto.idProducto);
             if (producto == null)
             {
-                throw new InvalidOperationException("El producto no existe.");
+                throw new NegocioException(ErrorNegocio.NoEncontrado, "El producto no existe.");
             }
 
             // Aca la cantidad es absoluta: reemplaza a la anterior, asi que se compara
             // tal cual contra el stock. En agregarProducto es relativa y hay que sumar.
             if (cantidad > producto.Stock)
             {
-                throw new InvalidOperationException("Stock insuficiente.");
+                throw new NegocioException(ErrorNegocio.SinStock, "Stock insuficiente.");
             }
 
             return carritoProductoDatos.actualizarCantidad(idCarritoProducto, cantidad);
@@ -160,7 +161,7 @@ namespace API_luceritoStore.Services
         {
             if (idCarritoProducto <= 0)
             {
-                throw new InvalidOperationException("El id del item del carrito es invalido.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El id del item del carrito es invalido.");
             }
 
 
@@ -172,7 +173,7 @@ namespace API_luceritoStore.Services
                 }
             }
 
-            throw new InvalidOperationException("El producto no esta en el carrito.");
+            throw new NegocioException(ErrorNegocio.NoEncontrado, "El producto no esta en el carrito.");
         } 
 
         public decimal obtenerTotalCarrito(int idUsuario)

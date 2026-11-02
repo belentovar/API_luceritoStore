@@ -5,12 +5,16 @@ namespace API_luceritoStore.Services
 {
     public class ProductoService
     {
+        private readonly categoriaDatos categoriaDatos;
+        private readonly ProductosDatos productosDatos;
 
-
+        public ProductoService(categoriaDatos categoriaDatos, ProductosDatos productosDatos)
+        {
+            this.categoriaDatos = categoriaDatos;
+            this.productosDatos = productosDatos;
+        }
         public int actualizarProducto(Producto producto)
         {
-            categoriaDatos catDatos = new categoriaDatos();
-            ProductosDatos prodDatos = new ProductosDatos();
 
             // --- el objeto ---
             if (producto == null)
@@ -61,45 +65,35 @@ namespace API_luceritoStore.Services
             }
 
             // --- la base ---
-            if (!catDatos.ExisteCategoria(producto.IdCategoria))
+            if (!categoriaDatos.ExisteCategoria(producto.IdCategoria))
             {
                 throw new InvalidOperationException("La categoria no existe.");
             }
 
-            if (prodDatos.obtenerProductoPorId(producto.IdProducto) == null)
+            if (productosDatos.obtenerProductoPorId(producto.IdProducto) == null)
             {
                 throw new InvalidOperationException("El producto no existe.");
             }
 
-            return prodDatos.actualizarProducto(producto);
+            return productosDatos.actualizarProducto(producto);
         }
 
 
         public List<Producto> listarProductosPorCategoria(int idCategoria)
         {
-            ProductosDatos prodDatos = new ProductosDatos();
-            categoriaDatos catDatos = new categoriaDatos();
-            if (!catDatos.ExisteCategoria(idCategoria)) {
+            if (!categoriaDatos.ExisteCategoria(idCategoria)) {
                 throw new Exception("La categoría no existe.");
             }
 
-            return prodDatos.listarProductosPorCategoria(idCategoria);
+            return productosDatos.listarProductosPorCategoria(idCategoria);
         }
 
-        // Debe coincidir con el largo de la columna nombreProducto en la base.
-        // Verificar en SSMS y ajustar: validar distinto del esquema rechaza nombres
-        // que la base acepta, o deja pasar nombres que SQL Server trunca.
+    
         private const int LargoMaximoNombre = 30;
-
-        // Debe coincidir con el largo de la columna codigo en la base.
         private const int LargoMaximoCodigo = 20;
 
         public int agregarProducto(Producto producto)
         {
-            // Las validaciones van de lo barato a lo caro: primero el objeto y sus campos,
-            // despues los rangos, y al final las consultas a la base. Asi no se abre una
-            // conexion para descubrir un error que se veia sin salir de memoria, y ningun
-            // chequeo toca una propiedad de un objeto que todavia no se valido.
 
             // --- el objeto ---
             if (producto == null)
@@ -145,19 +139,73 @@ namespace API_luceritoStore.Services
             }
 
             // --- la base ---
-            categoriaDatos categoriaDatos = new categoriaDatos();
             if (!categoriaDatos.ExisteCategoria(producto.IdCategoria))
             {
                 throw new InvalidOperationException("La categoria no existe.");
             }
 
-            ProductosDatos productosDatos = new ProductosDatos();
             if (productosDatos.ExisteProducto(producto.Codigo))
             {
                 throw new InvalidOperationException("Ya existe un producto con ese codigo.");
             }
 
             return productosDatos.AgregarProducto(producto);
+        }
+
+        public List<Producto> listarProductos()
+        {
+            return productosDatos.listarProductos();
+        }
+
+        public Producto? obtenerProductoPorId(int idProducto)
+        {
+            if (idProducto <= 0)
+            {
+                throw new InvalidOperationException("El id del producto es invalido.");
+            }
+
+            return productosDatos.obtenerProductoPorId(idProducto);
+        }
+
+        public List<Producto> listarProductosPorNombre(string nombreProduc)
+        {
+            if (string.IsNullOrWhiteSpace(nombreProduc))
+            {
+                throw new InvalidOperationException("El nombre a buscar es obligatorio.");
+            }
+
+            return productosDatos.listarProductosPorNombre(nombreProduc.Trim());
+        }
+
+        public int darDeBajaProducto(int idProducto)
+        {
+            if (idProducto <= 0)
+            {
+                throw new InvalidOperationException("El id del producto es invalido.");
+            }
+
+            if (productosDatos.obtenerProductoPorId(idProducto) == null)
+            {
+                throw new InvalidOperationException("El producto no existe.");
+            }
+
+            return productosDatos.darDeBajaProducto(idProducto);
+        }
+
+        public int darDeAltaProducto(int idProducto)
+        {
+            if (idProducto <= 0)
+            {
+                throw new InvalidOperationException("El id del producto es invalido.");
+            }
+
+
+            if (productosDatos.obtenerProductoPorId(idProducto) == null)
+            {
+                throw new InvalidOperationException("El producto no existe.");
+            }
+
+            return productosDatos.darDeALtaProducto(idProducto);
         }
     }
 }

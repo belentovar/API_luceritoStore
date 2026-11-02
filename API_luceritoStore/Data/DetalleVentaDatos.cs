@@ -6,9 +6,13 @@ namespace API_luceritoStore.Data
 {
     public class DetalleVentaDatos
     {
+        private readonly AccesoDatos acceso;
+
+        public DetalleVentaDatos(AccesoDatos acceso) { 
+            this.acceso = acceso;
+        }
         public List<Venta> listarVentasConDetallePorUsuario(int idUsuario)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
             List<Venta> ventas = new List<Venta>();
             string consulta = "SELECT v.idVenta, v.idUsuario, v.fecha, v.total, v.estado, " +
@@ -78,7 +82,6 @@ namespace API_luceritoStore.Data
 
         public Venta? obtenerVentaConDetalle(int idVenta)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
            
             Venta? venta = null;

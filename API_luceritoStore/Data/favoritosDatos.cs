@@ -6,10 +6,14 @@ namespace API_luceritoStore.Data
 {
     public class favoritosDatos
     {
+        private readonly AccesoDatos acceso;
 
+        public favoritosDatos(AccesoDatos acceso)
+        {
+            this.acceso = acceso;
+        }
         public bool existeFavorito(int idUsuario, int idProducto)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "select * from Favoritos where idUsuario=@idUsua and idProducto=@idProd";
@@ -39,7 +43,6 @@ namespace API_luceritoStore.Data
                 return false;
             }
 
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "insert into Favoritos (IdUsuario, IdProducto) values (@IdUsua, @IdProd)";
@@ -65,7 +68,6 @@ namespace API_luceritoStore.Data
 
         public int eliminarFavorito(int idFavorito)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "DELETE FROM Favoritos WHERE idFavorito = @idFavorito";
@@ -87,7 +89,6 @@ namespace API_luceritoStore.Data
         public List<Producto> listarFavoritosPorUsuario(int idUsuario)
         {
             List<Producto> productos = new List<Producto>();
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "select p.idProducto, p.idCategoria, p.nombreProducto, p.precio, p.detalle, p.imagenProducto, p.stock"

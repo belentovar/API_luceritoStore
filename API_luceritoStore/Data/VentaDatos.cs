@@ -7,9 +7,18 @@ namespace API_luceritoStore.Data
 {
     public class VentaDatos
     {
+        private readonly AccesoDatos acceso;
+        private readonly DetalleVentaDatos detalleDatos;
+        private readonly ProductosDatos productosDatos;
+
+        public VentaDatos(AccesoDatos acceso, DetalleVentaDatos detalleDatos, ProductosDatos productosDatos)
+        {
+            this.acceso = acceso;
+            this.detalleDatos = detalleDatos;
+            this.productosDatos = productosDatos;
+        }
         public int insertarVenta(Venta venta) //----------FIJARSE COMO FUNCIONA DESCONTARSTOCK ACA
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             SqlTransaction transaccion = conexion.BeginTransaction();
@@ -34,11 +43,6 @@ namespace API_luceritoStore.Data
                 int idGenerado = Convert.ToInt32(cmd.ExecuteScalar());
 
                 venta.IdVenta = idGenerado;
-
-                DetalleVentaDatos detalleDatos = new DetalleVentaDatos();
-
-                ProductosDatos productosDatos = new ProductosDatos();
-
 
                 foreach (DetalleVenta detalle in venta.Detalle)
                 {
@@ -72,7 +76,6 @@ namespace API_luceritoStore.Data
 
         public int actualizarEstadoVenta(int IdVenta, string Estado)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
             string consulta = "update Ventas set estado = @estado where idVenta = @idVenta";
 
@@ -96,7 +99,6 @@ namespace API_luceritoStore.Data
 
         public Venta? obtenerVentaPorId(int idVenta)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
             string consulta = "SELECT v.idVenta, v.idUsuario, v.fecha, v.total, v.estado, " +
                "v.idLocalidad, v.direccion, v.metodoPago, v.tipoEntrega, " +
@@ -149,7 +151,6 @@ namespace API_luceritoStore.Data
         // SIN USO POR AHORA. No lo llama nadie
         public List<Venta> listarVentasPorUsuario(int idUsuario)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
             // Mismos JOINs que obtenerVentaPorId para traer los nombres derivados.
             // Ordenado por fecha descendente: el historial muestra primero lo mas reciente.

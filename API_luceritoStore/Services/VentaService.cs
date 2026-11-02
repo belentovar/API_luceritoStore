@@ -7,13 +7,66 @@ namespace API_luceritoStore.Services
 {
     public class VentaService
     {
+        private readonly VentaDatos ventaDatos;
+        private readonly UsuariosDatos usuariosDatos;
+        private readonly ProductosDatos productosDatos;
+        private readonly LocalidadDatos localidadDatos;
+        private readonly DetalleVentaDatos detalleVentaDatos;
+        private readonly CarritoService carritoService;
+
+        public VentaService(CarritoService carritoService, VentaDatos ventaDatos, UsuariosDatos usuariosDatos, ProductosDatos productosDatos, LocalidadDatos localidadDatos, DetalleVentaDatos detalleVentaDatos)
+        {
+            this.ventaDatos = ventaDatos;
+            this.usuariosDatos = usuariosDatos;
+            this.productosDatos = productosDatos;
+            this.localidadDatos = localidadDatos;
+            this.detalleVentaDatos = detalleVentaDatos;
+            this.carritoService = carritoService;
+        }
+
+        public int checkoutDesdeCarrito(int idUsuario, string metodoPago, string tipoEntrega, string direccion, int idLocalidad)
+        {
+            List<CarritoProducto> carritoProductos = carritoService.verCarrito(idUsuario);
+
+            if (carritoProductos == null || carritoProductos.Count == 0)
+            {
+                throw new InvalidOperationException("El carrito esta vacio, no se puede generar la venta.");
+            }
+
+            List<DetalleVenta> detalles = new List<DetalleVenta>();
+
+            foreach (CarritoProducto item in carritoProductos)
+            {
+                DetalleVenta detalle = new DetalleVenta()
+                {
+                    idProducto = item.idProducto,
+                    Cantidad = item.cantidad
+                };
+
+                detalles.Add(detalle);
+            }
+
+            Venta venta = new Venta()
+            {
+                IdUsuario = idUsuario,
+                Fecha = DateTime.Now,
+                Estado = "Pendiente",
+                MetodoPago = metodoPago,
+                TipoEntrega = tipoEntrega,
+                Direccion = direccion,
+                IdLocalidad = idLocalidad,
+                Detalle = detalles
+            };
+
+            int idVenta = insertarVenta(venta);
+
+            carritoService.vaciarCarrito(idUsuario);
+
+            return idVenta;
+        }
         public int insertarVenta(Venta venta)
         {
-            VentaDatos ventaDatos = new VentaDatos();
-            UsuariosDatos usuariosDatos = new UsuariosDatos();
-
             Producto producto = new Producto();
-            ProductosDatos productosDatos = new ProductosDatos();
 
             if (usuariosDatos.obtenerUsuarioPorId(venta.IdUsuario) == null) //si el usuario no existe
             {
@@ -73,7 +126,7 @@ namespace API_luceritoStore.Services
 
                 // La localidad tiene que existir Y estar activa. obtenerLocalidadPorId ya filtra
                 // activo=1, asi que si devuelve null es porque no existe o esta dada de baja.
-                LocalidadDatos localidadDatos = new LocalidadDatos();
+                
                 if (localidadDatos.obtenerLocalidadPorId(venta.IdLocalidad) == null)
                 {
                     throw new InvalidOperationException("La localidad no existe o no esta habilitada para envio");
@@ -94,7 +147,6 @@ namespace API_luceritoStore.Services
       
         public int actualizarEstadoVenta(int IdVenta, string Estado)
         {
-            VentaDatos ventaDatos = new VentaDatos();
             Venta venta = new Venta();
 
             venta = ventaDatos.obtenerVentaPorId(IdVenta);
@@ -129,8 +181,7 @@ namespace API_luceritoStore.Services
                 return null;
             }
 
-            DetalleVentaDatos detalleDatos = new DetalleVentaDatos();
-            return detalleDatos.obtenerVentaConDetalle(idVenta);
+            return detalleVentaDatos.obtenerVentaConDetalle(idVenta);
         }
     }
 }

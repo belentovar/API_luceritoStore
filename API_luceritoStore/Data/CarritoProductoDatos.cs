@@ -5,9 +5,14 @@ namespace API_luceritoStore.Data
 {
     public class CarritoProductoDatos
     {
+        private readonly AccesoDatos acceso;
+
+        public CarritoProductoDatos(AccesoDatos acceso)
+        {
+            this.acceso = acceso;
+        }
         public int agregarProducto(int idCarrito, int idProducto, int cantidad)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = @"INSERT INTO CarritoProductos (idCarrito, idProducto, cantidad)
@@ -27,7 +32,6 @@ namespace API_luceritoStore.Data
 
         public List<CarritoProducto> obtenerProductosCarrito(int idCarrito)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
             List<CarritoProducto> productos = new List<CarritoProducto>();
 
@@ -67,7 +71,6 @@ namespace API_luceritoStore.Data
 
         public int actualizarCantidad(int idCarritoProducto, int cantidad)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = @"UPDATE CarritoProductos
@@ -87,7 +90,6 @@ namespace API_luceritoStore.Data
 
         public int eliminarProducto(int idCarritoProducto)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "DELETE FROM CarritoProductos WHERE idCarritoProducto = @idCarritoProducto";

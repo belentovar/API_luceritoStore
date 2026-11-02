@@ -8,7 +8,12 @@ namespace API_luceritoStore.Data
 {
     public class ProductosDatos
     {
+        private readonly AccesoDatos acceso;
 
+        public ProductosDatos(AccesoDatos acceso)
+        {
+            this.acceso = acceso;
+        }
         public List<Producto> listaDeProductos(SqlCommand sqlCommand) /// LISTA DE PRODUCTOS PARA NO REPETIR CODIGO 
         {
             List<Producto> productos = new List<Producto>();
@@ -35,10 +40,7 @@ namespace API_luceritoStore.Data
 
         public List<Producto> listarProductos() /// ---------------------------> LISTAR PRODUCTOS
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
-
-
             string consulta = "SELECT * FROM Productos where activo=1";
             
             try
@@ -58,7 +60,6 @@ namespace API_luceritoStore.Data
 
         public Producto? obtenerProductoPorId(int idProducto) /// --------> OBTENER PRODUCTO POR ID
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "SELECT * FROM Productos WHERE idProducto = @idProd";
@@ -101,7 +102,6 @@ namespace API_luceritoStore.Data
 
         public List<Producto> listarProductosPorCategoria(int idCategoria)/// ------------------> LISTAR PRODUCTOS POR CATEGORIA
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "select * from Productos where idCategoria = @idCat and activo = 1";
@@ -124,7 +124,6 @@ namespace API_luceritoStore.Data
 
         public List<Producto> listarProductosPorNombre(string nombreProduc)/// ------------------> LISTAR PRODUCTOS POR NOMBRE
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
             string consulta = "select * from Productos where (nombreProducto like @p1 or " +
                               "nombreProducto like @p2 or " +
@@ -152,7 +151,6 @@ namespace API_luceritoStore.Data
         public int darDeBajaProducto(int idProduc) /// ------------------> BORRAR PRODUCTO POR ID
         {
             string consulta = "update Productos set activo = 0 where idProducto = @idProduc";
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             try
@@ -175,7 +173,6 @@ namespace API_luceritoStore.Data
         public int darDeALtaProducto(int idProduc) 
         {
             string consulta = "update Productos set activo = 1 where idProducto = @idProduc";
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             try
@@ -198,7 +195,6 @@ namespace API_luceritoStore.Data
 
         public int actualizarProducto(Producto producto) /// -------- ACTUALIZAR PRODUCTO
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = @"UPDATE Productos
@@ -240,7 +236,6 @@ namespace API_luceritoStore.Data
 
         public int AgregarProducto(Producto producto) /// ------------------> AGREGAR PRODUCTO
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             // activo se fija en 1: un producto recien creado siempre nace activo.
@@ -273,10 +268,6 @@ namespace API_luceritoStore.Data
 
         public int descontarStock(int idProducto, int cantidad, SqlConnection conn, SqlTransaction transaccion) /// -------- DESCONTAR STOCK (ATOMICO)
         {
-            // UPDATE guardado: solo descuenta si hay stock suficiente (WHERE stock >= @cantidad).
-            // Corre dentro de la transaccion de la venta. Devuelve las filas afectadas: si es 0,
-            // no habia stock suficiente (o no existe el producto) y la venta se debe abortar.
-            // Asi la verificacion y el descuento son una sola operacion: no hay sobreventa.
             string consulta = @"UPDATE Productos SET stock = stock - @cantidad
                         WHERE idProducto = @idProducto AND stock >= @cantidad";
 
@@ -296,8 +287,7 @@ namespace API_luceritoStore.Data
         {
             string consulta = "SELECT TOP 1 1 FROM Productos where codigo=@codigo";
 
-            AccesoDatos accesoDatos = new AccesoDatos();
-            SqlConnection conexion = accesoDatos.ObtenerConexion();
+            SqlConnection conexion = acceso.ObtenerConexion();
             try
             {
                 SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
@@ -307,7 +297,25 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                accesoDatos.CerrarConexion(conexion);
+                acceso.CerrarConexion(conexion);
+            }
+        }
+
+        public bool ExisteProductoPorIdProd(int idProducto)
+        {
+            string consulta = "SELECT TOP 1 1 FROM Productos where idProducto=@idProd";
+
+            SqlConnection conexion = acceso.ObtenerConexion();
+            try
+            {
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
+                sqlCommand.Parameters.AddWithValue("@idProd", idProducto);
+                object existe = sqlCommand.ExecuteScalar();
+                return existe != null;
+            }
+            finally
+            {
+                acceso.CerrarConexion(conexion);
             }
         }
     }

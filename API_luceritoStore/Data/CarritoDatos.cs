@@ -6,15 +6,15 @@ namespace API_luceritoStore.Data
 {
     public class CarritoDatos
     {
-        // Devuelve null si el usuario no tiene carrito, igual que obtenerProductoPorId y
-        // obtenerLocalidadPorId. Antes se inicializaba con new Carrito() antes del reader,
-        // asi que nunca devolvia null: al usuario sin carrito le llegaba un objeto con
-        // idCarrito = 0, y el chequeo == null del service no entraba jamas.
+        private readonly AccesoDatos acceso;
+
+        public CarritoDatos(AccesoDatos acceso) { 
+            this.acceso = acceso;
+        }
         public Carrito? obtenerCarritoPorUsuario(int idUsuario)
         {
             string consulta = "SELECT idCarrito, idUsuario FROM Carritos WHERE idUsuario = @idUsuario";
 
-            AccesoDatos acceso = new AccesoDatos(); // <-
             Carrito? carrito = null;
 
             SqlConnection conexion = acceso.ObtenerConexion(); // <-
@@ -46,19 +46,17 @@ namespace API_luceritoStore.Data
 
         public int crearCarrito(int idUsuario)
         {
-            AccesoDatos acceso = new AccesoDatos();
 
             SqlConnection conexion = acceso.ObtenerConexion();
 
-            string consulta = @"INSERT INTO Carritos (idUsuario, fechaCreacion)
-                        VALUES (@idUsuario, @fechaCreacion);
+            string consulta = @"INSERT INTO Carritos (idUsuario)
+                        VALUES (@idUsuario);
                         SELECT SCOPE_IDENTITY();";
 
             try
             {
                 SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
                 sqlCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
-                sqlCommand.Parameters.AddWithValue("@fechaCreacion", DateTime.Now);
 
                 int idGenerado = Convert.ToInt32(sqlCommand.ExecuteScalar());
                 return idGenerado; 
@@ -72,7 +70,6 @@ namespace API_luceritoStore.Data
 
         public int vaciarCarrito(int idCarrito)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "DELETE FROM CarritoProductos WHERE idCarrito = @idCarrito";

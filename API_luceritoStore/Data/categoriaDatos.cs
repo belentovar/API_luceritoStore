@@ -1,13 +1,19 @@
-﻿using API_luceritoStore.Models;
+using API_luceritoStore.Models;
 using Microsoft.Data.SqlClient;
 
 namespace API_luceritoStore.Data
 {
     public class categoriaDatos
     {
+        private readonly AccesoDatos acceso;
+
+        public categoriaDatos(AccesoDatos acceso)
+        {
+            this.acceso = acceso;
+        }
+
         public bool ExisteCategoria(int id)
         {
-            AccesoDatos acceso = new AccesoDatos();
             string consulta = "SELECT TOP 1 1 FROM CategoriaProductos WHERE idCategoria = @id";
 
             SqlConnection conexion = acceso.ObtenerConexion();
@@ -33,7 +39,6 @@ namespace API_luceritoStore.Data
         public List<CategoriaProducto> listarCategorias()
         {
             string consulta = "SELECT idCategoria, nombreCategoria, activo FROM CategoriaProductos WHERE activo = 1";
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
             List<CategoriaProducto> categorias = new List<CategoriaProducto>();
 
@@ -66,7 +71,6 @@ namespace API_luceritoStore.Data
         {
             // activo se fija en 1: una categoria recien creada siempre nace activa.
             string consulta = "INSERT INTO CategoriaProductos (nombreCategoria, activo) VALUES (@nombre, 1)";
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             try
@@ -88,7 +92,6 @@ namespace API_luceritoStore.Data
         public int darDeBajaCategoria(int idCategoria)
         {
             string consulta = "UPDATE CategoriaProductos SET activo = 0 WHERE idCategoria = @id";
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             try
@@ -110,7 +113,6 @@ namespace API_luceritoStore.Data
         public int darDeAltaCategoria(int idCategoria)
         {
             string consulta = "UPDATE CategoriaProductos SET activo = 1 WHERE idCategoria = @id";
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             try

@@ -12,15 +12,15 @@ namespace API_luceritoStore.Services
     {
 
         private readonly IConfiguration _configuration;
-
-        public UsuarioService(IConfiguration configuration)
+        private readonly UsuariosDatos usuariosDatos;
+        public UsuarioService(IConfiguration configuration, UsuariosDatos usuariosDatos)
         {
             _configuration = configuration;
+            this.usuariosDatos = usuariosDatos;
         }
 
         public int AgregarUsuario(Usuario usuario)
         {
-            UsuariosDatos usuariosDatos = new UsuariosDatos();
             
             if(usuario.NombreUsuario == null || usuario.ClaveUsuario == null || usuario.Correo == null ){
                     return -1; //Datos incompletos
@@ -48,7 +48,6 @@ namespace API_luceritoStore.Services
 
         public string Login(Usuario usuario)
         {
-            UsuariosDatos usuariosDatos = new UsuariosDatos();
 
             if (usuario.NombreUsuario == null || usuario.ClaveUsuario == null)
             {

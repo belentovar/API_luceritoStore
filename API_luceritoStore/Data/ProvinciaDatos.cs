@@ -4,13 +4,18 @@ using Microsoft.Data.SqlClient;
 namespace API_luceritoStore.Data
 {
     public class ProvinciaDatos
-    { 
+    {
+        private readonly AccesoDatos acceso;
+
+        public ProvinciaDatos(AccesoDatos acceso)
+        {
+            this.acceso = acceso;
+        }
         public List<Provincia> ListarProvincias()
         {
             string consulta = "select idProvincia, nombreProvincia, activo from Provincias where activo=1";
 
-            AccesoDatos accesoDatos = new AccesoDatos();
-            SqlConnection conexion = accesoDatos.ObtenerConexion();
+            SqlConnection conexion = acceso.ObtenerConexion();
             List<Provincia> provincias = new List<Provincia>();
 
             try
@@ -29,7 +34,7 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                accesoDatos.CerrarConexion(conexion);
+                acceso.CerrarConexion(conexion);
             }
 
             return provincias;
@@ -40,8 +45,7 @@ namespace API_luceritoStore.Data
         {
             string consulta = "update Provincias set activo=0 where idProvincia = @IdProvincia";
 
-            AccesoDatos accesoDatos = new AccesoDatos();
-            SqlConnection conexion = accesoDatos.ObtenerConexion();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             try
             {
@@ -52,7 +56,7 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                accesoDatos.CerrarConexion(conexion);
+                acceso.CerrarConexion(conexion);
             }
         }
 
@@ -60,8 +64,7 @@ namespace API_luceritoStore.Data
         {
             string consulta = "update Provincias set activo=1 where idProvincia = @IdProvincia";
 
-            AccesoDatos accesoDatos = new AccesoDatos();
-            SqlConnection conexion = accesoDatos.ObtenerConexion();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             try
             {
@@ -72,7 +75,7 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                accesoDatos.CerrarConexion(conexion);
+                acceso.CerrarConexion(conexion);
             }
         }
 
@@ -80,8 +83,7 @@ namespace API_luceritoStore.Data
         {
             string consulta = "insert into Provincias (nombreProvincia) values (@nombreProv)";
 
-            AccesoDatos accesoDatos = new AccesoDatos();
-            SqlConnection conexion = accesoDatos.ObtenerConexion();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             try
             {
@@ -92,7 +94,7 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                accesoDatos.CerrarConexion(conexion);
+                acceso.CerrarConexion(conexion);
             }
         }
     }

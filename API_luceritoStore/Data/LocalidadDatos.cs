@@ -5,6 +5,12 @@ namespace API_luceritoStore.Data
 {
     public class LocalidadDatos
     {
+        private readonly AccesoDatos acceso;
+
+        public LocalidadDatos(AccesoDatos acceso)
+        {
+            this.acceso = acceso;
+        }
         public List<Localidad> listarPorProvincia(int idProvincia)
         {
             string consulta = "SELECT l.idLocalidad, l.idProvincia, l.nombreLocalidad, l.activo, p.nombreProvincia " +
@@ -12,8 +18,7 @@ namespace API_luceritoStore.Data
                                 "INNER JOIN Provincias p ON l.idProvincia = p.idProvincia " +
                                 "WHERE l.idProvincia = @idProvincia AND l.activo = 1";
 
-            AccesoDatos accesoDatos = new AccesoDatos();
-            SqlConnection conexion = accesoDatos.ObtenerConexion();
+            SqlConnection conexion = acceso.ObtenerConexion();
             List<Localidad> localidades = new List<Localidad>();
 
             try
@@ -37,7 +42,7 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                accesoDatos.CerrarConexion(conexion);
+                acceso.CerrarConexion(conexion);
             }
 
             return localidades;
@@ -45,8 +50,7 @@ namespace API_luceritoStore.Data
 
         public Localidad? obtenerLocalidadPorId(int idLocalidad) { //porque el ?
             string consulta = "select * from Localidades where idLocalidad=@IdLocalidad and activo=1";
-            AccesoDatos accesoDatos= new AccesoDatos();
-            SqlConnection conexion = accesoDatos.ObtenerConexion();
+            SqlConnection conexion = acceso.ObtenerConexion();
             
 
             try
@@ -70,15 +74,14 @@ namespace API_luceritoStore.Data
                 
             }
             finally {
-                accesoDatos.CerrarConexion(conexion);
+                acceso.CerrarConexion(conexion);
             }
             
             
         }
         public int darDeBajaLocalidad(int idLocalidad) {
             string consulta = "update Localidades set activo=0 where idLocalidad=@IdLocalidad";
-            AccesoDatos accesoDatos = new AccesoDatos();
-            SqlConnection conexion = accesoDatos.ObtenerConexion();
+            SqlConnection conexion = acceso.ObtenerConexion();
             try
             {
                 SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
@@ -88,15 +91,14 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                accesoDatos.CerrarConexion(conexion);
+                acceso.CerrarConexion(conexion);
             }
         }
 
         public int darDeAltaLocalidad(int idLocalidad)
         {
             string consulta = "update Localidades set activo=1 where idLocalidad=@IdLocalidad";
-            AccesoDatos accesoDatos = new AccesoDatos();
-            SqlConnection conexion = accesoDatos.ObtenerConexion();
+            SqlConnection conexion = acceso.ObtenerConexion();
             try
             {
                 SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
@@ -106,15 +108,13 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                accesoDatos.CerrarConexion(conexion);
+                acceso.CerrarConexion(conexion);
             }
         }
 
         public int agregarLocalidad(Localidad localidad) {
             string consulta = "insert into Localidades (idProvincia, nombreLocalidad) values (@idProv, @nombreLocal)";
-
-            AccesoDatos accesoDatos = new AccesoDatos();
-            SqlConnection conexion = accesoDatos.ObtenerConexion();
+            SqlConnection conexion = acceso.ObtenerConexion();
 
             try
             {
@@ -127,7 +127,7 @@ namespace API_luceritoStore.Data
             }
             finally
             {
-                accesoDatos.CerrarConexion(conexion);
+                acceso.CerrarConexion(conexion);
             }
         }
     }

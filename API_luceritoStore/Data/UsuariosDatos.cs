@@ -6,12 +6,16 @@ namespace API_luceritoStore.Data
 {
     public class UsuariosDatos
     {
+        private readonly AccesoDatos acceso;
 
+        public UsuariosDatos(AccesoDatos acceso)
+        {
+            this.acceso = acceso;
+        }
         public int AgregarUsuario(Usuario usuario)
         {
             string claveHasheada = BCrypt.Net.BCrypt.HashPassword(usuario.ClaveUsuario); /// SE ENCRIPTA LA CLAVE 
                                                                                          /// PARA RESPETAR LA PRIVACIDAD DEL USUARIO
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string rol = string.IsNullOrWhiteSpace(usuario.Rol) ? "cliente" : usuario.Rol.ToLower();
@@ -40,7 +44,6 @@ namespace API_luceritoStore.Data
 
         public int DarDeBajaUsuario(int idUsuario)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
             string consulta = "update Usuarios set activo = 0 where idUsuario = @idUsua";
 
@@ -64,7 +67,6 @@ namespace API_luceritoStore.Data
 
         public int DarDeAltaUsuario(int idUsuario)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
             string consulta = "update Usuarios set activo = 1 where idUsuario = @idUsua";
 
@@ -88,7 +90,6 @@ namespace API_luceritoStore.Data
 
         public Usuario? obtenerUsuarioPorId(int idUsuario)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "select * from Usuarios where idUsuario = @idUsua";
@@ -126,7 +127,6 @@ namespace API_luceritoStore.Data
 
         public Usuario ObtenerUsuarioPorNombre(string nombreUsuario)
         {
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
 
             string consulta = "SELECT * FROM Usuarios WHERE nombreUsuario = @nombreU";
@@ -167,7 +167,6 @@ namespace API_luceritoStore.Data
         public Usuario ObtenerUsuarioPorLogin(string nombreUsuario, string claveUsuario)
         {
             string consulta = "select idUsuario, nombreUsuario, claveUsuario, correo from Usuarios where nombreUsuario = @nombreU and activo = 1";
-            AccesoDatos acceso = new AccesoDatos();
             SqlConnection conexion = acceso.ObtenerConexion();
             Usuario usuario = null;
 
@@ -206,9 +205,33 @@ namespace API_luceritoStore.Data
             } 
         }
 
+        public bool ExisteUsuarioPorId(int idUsuario)
+        {
+            string consulta = "SELECT TOP 1 1 FROM Usuarios WHERE idUsuario = @idUsuario";
+
+            SqlConnection conexion = acceso.ObtenerConexion();
+
+            try
+            {
+                SqlCommand sqlCommand = new SqlCommand(consulta, conexion);
+                sqlCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
+
+                object resultado = sqlCommand.ExecuteScalar();
+
+                return resultado != null;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                acceso.CerrarConexion(conexion);
+            }
+        }
+
         public bool ExisteCorreo(string correo)
         {
-            AccesoDatos acceso = new AccesoDatos();
             string consulta = "SELECT TOP 1 1 FROM Usuarios WHERE correo = @correoUsuario";
 
             //El primer 1 Le dice a la base de datos: "Detente en cuanto encuentres la primera coincidencia".
@@ -234,8 +257,5 @@ namespace API_luceritoStore.Data
                 acceso.CerrarConexion(conexion);
             }
         }
-
-       
-
     }
 }

@@ -5,8 +5,14 @@ namespace API_luceritoStore.Data
 {
     public class AccesoDatos
     {
-        public string cadenaConexion = @"Data Source=localhost\SQLEXPRESS;Initial Catalog=DB_luceritoStore;Integrated Security=True;Trust Server Certificate=True";
+        public string cadenaConexion = string.Empty;
 
+        public AccesoDatos(IConfiguration configuration)
+        {
+             cadenaConexion = configuration.GetConnectionString("cadenaConexion")
+            ?? throw new InvalidOperationException("No se encontró la cadena de conexión 'cadenaConexion'.");
+
+        }
         public SqlConnection ObtenerConexion()
         {
             SqlConnection sqlConnection = new SqlConnection(cadenaConexion);

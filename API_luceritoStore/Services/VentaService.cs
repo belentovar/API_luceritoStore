@@ -1,5 +1,6 @@
 ﻿using API_luceritoStore.Data;
 using API_luceritoStore.Models;
+using API_luceritoStore.Models.Errores;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
@@ -30,7 +31,7 @@ namespace API_luceritoStore.Services
 
             if (carritoProductos == null || carritoProductos.Count == 0)
             {
-                throw new InvalidOperationException("El carrito esta vacio, no se puede generar la venta.");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El carrito esta vacio, no se puede generar la venta.");
             }
 
             List<DetalleVenta> detalles = new List<DetalleVenta>();
@@ -68,14 +69,14 @@ namespace API_luceritoStore.Services
         {
             Producto producto = new Producto();
 
-            if (usuariosDatos.obtenerUsuarioPorId(venta.IdUsuario) == null) //si el usuario no existe
+            if (usuariosDatos.obtenerUsuarioPorId(venta.IdUsuario) == null)
             {
-                return 0;
+                throw new NegocioException(ErrorNegocio.NoEncontrado, "El usuario " + venta.IdUsuario + " no existe.");
             }
 
-            if (venta.Detalle == null || venta.Detalle.Count == 0) //si la lista no existe o si la lista esta vacia
+            if (venta.Detalle == null || venta.Detalle.Count == 0)
             {
-                return 0;
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "La venta no tiene detalle, no se puede registrar.");
             }
 
             venta.Total = 0; //lo reinicio para que no acumule el total que viene del front
@@ -87,18 +88,18 @@ namespace API_luceritoStore.Services
 
                 if (producto == null) //si el producto no existe
                 {
-                    throw new Exception("No existe el producto");
+                    throw new NegocioException(ErrorNegocio.NoEncontrado, "No existe el producto");
                 }
 
                 if (detalle.Cantidad > producto.Stock) //si no hay suficiente stock
                 {
-                    throw new Exception("No hay suficiente stock");
+                    throw new NegocioException(ErrorNegocio.SinStock, "No hay suficiente stock");
                 }
 
                 if (detalle.Cantidad <= 0) //se valida la cantidad
                 {
 
-                    throw new InvalidOperationException("Error en la cantidad");
+                    throw new NegocioException(ErrorNegocio.DatosInvalidos, "Error en la cantidad");
                 }
 
                 detalle.PrecioUnitario = producto.Precio; //guardo precioU ahora por si dspues cambia el precio del prod
@@ -113,7 +114,7 @@ namespace API_luceritoStore.Services
 
             if (tipoEntrega != "envio" && tipoEntrega != "retiro")
             {
-                throw new InvalidOperationException("Tipo de entrega invalido");
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "Tipo de entrega invalido");
             }
 
             if (tipoEntrega == "envio")
@@ -121,7 +122,7 @@ namespace API_luceritoStore.Services
                 // Envio: la direccion es obligatoria.
                 if (string.IsNullOrWhiteSpace(venta.Direccion))
                 {
-                    throw new InvalidOperationException("La direccion es obligatoria para envio");
+                    throw new NegocioException(ErrorNegocio.DatosInvalidos, "La direccion es obligatoria para envio");
                 }
 
                 // La localidad tiene que existir Y estar activa. obtenerLocalidadPorId ya filtra
@@ -129,7 +130,7 @@ namespace API_luceritoStore.Services
                 
                 if (localidadDatos.obtenerLocalidadPorId(venta.IdLocalidad) == null)
                 {
-                    throw new InvalidOperationException("La localidad no existe o no esta habilitada para envio");
+                    throw new NegocioException(ErrorNegocio.NoEncontrado, "La localidad no existe o no esta habilitada para envio");
                 }
             }
             else // retiro: no se envia a ningun lado, se limpian los datos de envio.
@@ -151,9 +152,8 @@ namespace API_luceritoStore.Services
 
             venta = ventaDatos.obtenerVentaPorId(IdVenta);
             if (venta == null)
-            { 
-
-                return 0;
+            {
+                throw new NegocioException(ErrorNegocio.NoEncontrado, "La venta " + IdVenta + " no existe.");
             }
 
             if (Estado != EstadoVenta.Pendiente &&
@@ -161,7 +161,7 @@ namespace API_luceritoStore.Services
                 Estado != EstadoVenta.Enviado &&
                 Estado != EstadoVenta.Cancelado)
             {
-                return 0;
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El estado '" + Estado + "' no es valido.");
             }
 
             return ventaDatos.actualizarEstadoVenta(IdVenta, Estado);
@@ -178,7 +178,7 @@ namespace API_luceritoStore.Services
             // extra a la base para traer la misma fila dos veces.
             if (idVenta <= 0)
             {
-                return null;
+                throw new NegocioException(ErrorNegocio.DatosInvalidos, "El id de venta es invalido.");
             }
 
             return detalleVentaDatos.obtenerVentaConDetalle(idVenta);
